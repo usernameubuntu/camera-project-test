@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Camera project</title>
+</head>
+<body>
+<pre id="text">Загрузка...</pre>
+<script>
+fetch('./Новый%20текстовый%20документ%20(3).txt')
+  .then(r => r.text())
+  .then(t => document.getElementById('text').textContent = t)
+  .catch(e => document.getElementById('text').textContent = 'Ошибка: ' + e);
+</script>
+</body>
+</html>
