@@ -1,0 +1,1852 @@
+
+userubuntu@NSZDR2414:~/openipc-linux$ cd ~/openipc-linux && \
+f '%s\n> printf '%s\n' '--- READ MACROS / CMD_OP ---' && \
+grep -R> grep -Rni -B10 -A25 -E \
+> '#define (READ_STD|READ_FAST|SET_READ_STD)|struct hifmc_cmd_op|struct spi_op|OP_CTRL_RD_OPCODE|OP_CTRL_RD_OP_SEL|OP_CFG_FM_CS|OP_CFG_ADDR_NUM|FMC_ADDRH_SET' \
+s/mtd/na> drivers/mtd/nand/hifmc100 drivers/mtd/nand/hifmc100_nand include/linux/mfd/hisi_fmc.h 2>/dev/null && \
+> printf '%s\n' '--- SEND_CMD_READ ---' && \
+> sed -n '1,105p' drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c && \
+> printf '%s\n' '--- FMC DEFINITIONS ---' && \
+> grep -Rni -B5 -A15 -E \
+> 'FMC_ADDRH|FMC_ADDRL|FMC_OP_CTRL|FMC_DMA_AHB_CTRL|FMC_OP_READ_DATA_EN|OP_CTRL_RD_OPCODE|OP_CTRL_RD_OP_SEL' \
+> include/linux/mfd/hisi_fmc.h drivers/mtd/nand/hifmc100_nand 2>/dev/null | head -n 300
+--- READ MACROS / CMD_OP ---
+drivers/mtd/nand/hifmc100/hifmc_spi_nand_ids.c-1599-            0
+drivers/mtd/nand/hifmc100/hifmc_spi_nand_ids.c-1600-        },
+drivers/mtd/nand/hifmc100/hifmc_spi_nand_ids.c-1601-        .driver    = &spi_driver_general,
+drivers/mtd/nand/hifmc100/hifmc_spi_nand_ids.c-1602-    },
+drivers/mtd/nand/hifmc100/hifmc_spi_nand_ids.c-1603-
+drivers/mtd/nand/hifmc100/hifmc_spi_nand_ids.c-1604-    {   .id_len    = 0, },
+drivers/mtd/nand/hifmc100/hifmc_spi_nand_ids.c-1605-};
+drivers/mtd/nand/hifmc100/hifmc_spi_nand_ids.c-1606-
+drivers/mtd/nand/hifmc100/hifmc_spi_nand_ids.c-1607-/*****************************************************************************/
+drivers/mtd/nand/hifmc100/hifmc_spi_nand_ids.c-1608-static void hifmc100_spi_nand_search_rw(struct spi_nand_info *spiinfo,
+drivers/mtd/nand/hifmc100/hifmc_spi_nand_ids.c:1609:                                        struct spi_op *spiop_rw, u_int iftype, u_int max_dummy, int rw_type)
+drivers/mtd/nand/hifmc100/hifmc_spi_nand_ids.c-1610-{
+drivers/mtd/nand/hifmc100/hifmc_spi_nand_ids.c-1611-    int ix = 0;
+drivers/mtd/nand/hifmc100/hifmc_spi_nand_ids.c:1612:    struct spi_op **spiop, **fitspiop;
+drivers/mtd/nand/hifmc100/hifmc_spi_nand_ids.c-1613-
+drivers/mtd/nand/hifmc100/hifmc_spi_nand_ids.c-1614-    for (fitspiop = spiop = (rw_type ? spiinfo->write : spiinfo->read);
+drivers/mtd/nand/hifmc100/hifmc_spi_nand_ids.c-1615-            (*spiop) && ix < MAX_SPI_OP; spiop++, ix++) {
+drivers/mtd/nand/hifmc100/hifmc_spi_nand_ids.c-1616-        if (((*spiop)->iftype & iftype)
+drivers/mtd/nand/hifmc100/hifmc_spi_nand_ids.c-1617-                && ((*spiop)->dummy <= max_dummy)
+drivers/mtd/nand/hifmc100/hifmc_spi_nand_ids.c-1618-                && (*fitspiop)->iftype < (*spiop)->iftype) {
+drivers/mtd/nand/hifmc100/hifmc_spi_nand_ids.c-1619-            fitspiop = spiop;
+drivers/mtd/nand/hifmc100/hifmc_spi_nand_ids.c-1620-        }
+drivers/mtd/nand/hifmc100/hifmc_spi_nand_ids.c-1621-    }
+drivers/mtd/nand/hifmc100/hifmc_spi_nand_ids.c:1622:    memcpy(spiop_rw, (*fitspiop), sizeof(struct spi_op));
+drivers/mtd/nand/hifmc100/hifmc_spi_nand_ids.c-1623-}
+drivers/mtd/nand/hifmc100/hifmc_spi_nand_ids.c-1624-
+drivers/mtd/nand/hifmc100/hifmc_spi_nand_ids.c-1625-/*****************************************************************************/
+drivers/mtd/nand/hifmc100/hifmc_spi_nand_ids.c-1626-static void hifmc100_spi_nand_get_erase(struct spi_nand_info *spiinfo,
+drivers/mtd/nand/hifmc100/hifmc_spi_nand_ids.c:1627:                                        struct spi_op *spiop_erase)
+drivers/mtd/nand/hifmc100/hifmc_spi_nand_ids.c-1628-{
+drivers/mtd/nand/hifmc100/hifmc_spi_nand_ids.c-1629-    int ix;
+drivers/mtd/nand/hifmc100/hifmc_spi_nand_ids.c-1630-
+drivers/mtd/nand/hifmc100/hifmc_spi_nand_ids.c-1631-    spiop_erase->size = 0;
+drivers/mtd/nand/hifmc100/hifmc_spi_nand_ids.c-1632-    for (ix = 0; ix < MAX_SPI_OP; ix++) {
+drivers/mtd/nand/hifmc100/hifmc_spi_nand_ids.c-1633-        if (spiinfo->erase[ix] == NULL) {
+drivers/mtd/nand/hifmc100/hifmc_spi_nand_ids.c-1634-            break;
+drivers/mtd/nand/hifmc100/hifmc_spi_nand_ids.c-1635-        }
+drivers/mtd/nand/hifmc100/hifmc_spi_nand_ids.c-1636-        if (spiinfo->erasesize == spiinfo->erase[ix]->size) {
+drivers/mtd/nand/hifmc100/hifmc_spi_nand_ids.c-1637-            memcpy(&spiop_erase[ix], spiinfo->erase[ix],
+drivers/mtd/nand/hifmc100/hifmc_spi_nand_ids.c:1638:                   sizeof(struct spi_op));
+drivers/mtd/nand/hifmc100/hifmc_spi_nand_ids.c-1639-            break;
+drivers/mtd/nand/hifmc100/hifmc_spi_nand_ids.c-1640-        }
+drivers/mtd/nand/hifmc100/hifmc_spi_nand_ids.c-1641-    }
+drivers/mtd/nand/hifmc100/hifmc_spi_nand_ids.c-1642-}
+drivers/mtd/nand/hifmc100/hifmc_spi_nand_ids.c-1643-
+drivers/mtd/nand/hifmc100/hifmc_spi_nand_ids.c-1644-/*****************************************************************************/
+drivers/mtd/nand/hifmc100/hifmc_spi_nand_ids.c-1645-static void hifmc100_map_spi_op(struct hifmc_spi *spi)
+drivers/mtd/nand/hifmc100/hifmc_spi_nand_ids.c-1646-{
+drivers/mtd/nand/hifmc100/hifmc_spi_nand_ids.c-1647-    unsigned char ix;
+drivers/mtd/nand/hifmc100/hifmc_spi_nand_ids.c-1648-    const int iftype_read[] = {
+drivers/mtd/nand/hifmc100/hifmc_spi_nand_ids.c-1649-        SPI_IF_READ_STD,    IF_TYPE_STD,
+drivers/mtd/nand/hifmc100/hifmc_spi_nand_ids.c-1650-        SPI_IF_READ_FAST,   IF_TYPE_STD,
+drivers/mtd/nand/hifmc100/hifmc_spi_nand_ids.c-1651-        SPI_IF_READ_DUAL,   IF_TYPE_DUAL,
+drivers/mtd/nand/hifmc100/hifmc_spi_nand_ids.c-1652-        SPI_IF_READ_DUAL_ADDR,  IF_TYPE_DIO,
+drivers/mtd/nand/hifmc100/hifmc_spi_nand_ids.c-1653-        SPI_IF_READ_QUAD,   IF_TYPE_QUAD,
+drivers/mtd/nand/hifmc100/hifmc_spi_nand_ids.c-1654-        SPI_IF_READ_QUAD_ADDR,  IF_TYPE_QIO,
+drivers/mtd/nand/hifmc100/hifmc_spi_nand_ids.c-1655-        0,          0,
+drivers/mtd/nand/hifmc100/hifmc_spi_nand_ids.c-1656-    };
+drivers/mtd/nand/hifmc100/hifmc_spi_nand_ids.c-1657-    const int iftype_write[] = {
+drivers/mtd/nand/hifmc100/hifmc_spi_nand_ids.c-1658-        SPI_IF_WRITE_STD,   IF_TYPE_STD,
+drivers/mtd/nand/hifmc100/hifmc_spi_nand_ids.c-1659-        SPI_IF_WRITE_QUAD,  IF_TYPE_QUAD,
+drivers/mtd/nand/hifmc100/hifmc_spi_nand_ids.c-1660-        0,          0,
+drivers/mtd/nand/hifmc100/hifmc_spi_nand_ids.c-1661-    };
+drivers/mtd/nand/hifmc100/hifmc_spi_nand_ids.c-1662-    const char *if_str[] = {"STD", "DUAL", "DIO", "QUAD", "QIO"};
+drivers/mtd/nand/hifmc100/hifmc_spi_nand_ids.c-1663-
+--
+drivers/mtd/nand/hifmc100/hifmc100_spi_general.c-27-    unsigned int reg;
+drivers/mtd/nand/hifmc100/hifmc100_spi_general.c-28-    const char *str[] = {"Get", "Set"};
+drivers/mtd/nand/hifmc100/hifmc100_spi_general.c-29-    struct hifmc_host *host = (struct hifmc_host *)spi->host;
+drivers/mtd/nand/hifmc100/hifmc100_spi_general.c-30-
+drivers/mtd/nand/hifmc100/hifmc100_spi_general.c-31-    if ((op == GET_OP) && (STATUS_ADDR == addr)) {
+drivers/mtd/nand/hifmc100/hifmc100_spi_general.c-32-        if (SR_DBG) {
+drivers/mtd/nand/hifmc100/hifmc100_spi_general.c-33-            pr_info("\n");
+drivers/mtd/nand/hifmc100/hifmc100_spi_general.c-34-        }
+drivers/mtd/nand/hifmc100/hifmc100_spi_general.c-35-        FMC_PR(SR_DBG, "\t\t|*-Start Get Status\n");
+drivers/mtd/nand/hifmc100/hifmc100_spi_general.c-36-
+drivers/mtd/nand/hifmc100/hifmc100_spi_general.c:37:        reg = OP_CFG_FM_CS(host->cmd_op.cs) | OP_CFG_OEN_EN;
+drivers/mtd/nand/hifmc100/hifmc100_spi_general.c-38-        hifmc_writel(host, FMC_OP_CFG, reg);
+drivers/mtd/nand/hifmc100/hifmc100_spi_general.c-39-        FMC_PR(SR_DBG, "\t\t||-Set OP_CFG[%#x]%#x\n", FMC_OP_CFG, reg);
+drivers/mtd/nand/hifmc100/hifmc100_spi_general.c-40-
+drivers/mtd/nand/hifmc100/hifmc100_spi_general.c-41-        reg = FMC_OP_READ_STATUS_EN | FMC_OP_REG_OP_START;
+drivers/mtd/nand/hifmc100/hifmc100_spi_general.c-42-        hifmc_writel(host, FMC_OP, reg);
+drivers/mtd/nand/hifmc100/hifmc100_spi_general.c-43-        FMC_PR(SR_DBG, "\t\t||-Set OP[%#x]%#x\n", FMC_OP, reg);
+drivers/mtd/nand/hifmc100/hifmc100_spi_general.c-44-
+drivers/mtd/nand/hifmc100/hifmc100_spi_general.c-45-        FMC_CMD_WAIT_CPU_FINISH(host);
+drivers/mtd/nand/hifmc100/hifmc100_spi_general.c-46-
+drivers/mtd/nand/hifmc100/hifmc100_spi_general.c-47-        val = hifmc_readl(host, FMC_STATUS);
+drivers/mtd/nand/hifmc100/hifmc100_spi_general.c-48-        FMC_PR(SR_DBG, "\t\t|*-End Get Status, result: %#x\n", val);
+drivers/mtd/nand/hifmc100/hifmc100_spi_general.c-49-
+drivers/mtd/nand/hifmc100/hifmc100_spi_general.c-50-        return val;
+drivers/mtd/nand/hifmc100/hifmc100_spi_general.c-51-    }
+drivers/mtd/nand/hifmc100/hifmc100_spi_general.c-52-
+drivers/mtd/nand/hifmc100/hifmc100_spi_general.c-53-    FMC_PR(FT_DBG, "\t|||*-Start %s feature, addr[%#x]\n", str[op], addr);
+drivers/mtd/nand/hifmc100/hifmc100_spi_general.c-54-
+drivers/mtd/nand/hifmc100/hifmc100_spi_general.c-55-    hifmc100_ecc0_switch(host, ENABLE);
+drivers/mtd/nand/hifmc100/hifmc100_spi_general.c-56-
+drivers/mtd/nand/hifmc100/hifmc100_spi_general.c-57-    reg = FMC_CMD_CMD1(op ? SPI_CMD_SET_FEATURE : SPI_CMD_GET_FEATURES);
+drivers/mtd/nand/hifmc100/hifmc100_spi_general.c-58-    hifmc_writel(host, FMC_CMD, reg);
+drivers/mtd/nand/hifmc100/hifmc100_spi_general.c-59-    FMC_PR(FT_DBG, "\t||||-Set CMD[%#x]%#x\n", FMC_CMD, reg);
+drivers/mtd/nand/hifmc100/hifmc100_spi_general.c-60-
+drivers/mtd/nand/hifmc100/hifmc100_spi_general.c-61-    hifmc_writel(host, FMC_ADDRL, addr);
+drivers/mtd/nand/hifmc100/hifmc100_spi_general.c-62-    FMC_PR(FT_DBG, "\t||||-Set ADDRL[%#x]%#x\n", FMC_ADDRL, addr);
+drivers/mtd/nand/hifmc100/hifmc100_spi_general.c-63-
+drivers/mtd/nand/hifmc100/hifmc100_spi_general.c:64:    reg = OP_CFG_FM_CS(host->cmd_op.cs)
+drivers/mtd/nand/hifmc100/hifmc100_spi_general.c:65:          | OP_CFG_ADDR_NUM(FEATURES_OP_ADDR_NUM)
+drivers/mtd/nand/hifmc100/hifmc100_spi_general.c-66-          | OP_CFG_OEN_EN;
+drivers/mtd/nand/hifmc100/hifmc100_spi_general.c-67-    hifmc_writel(host, FMC_OP_CFG, reg);
+drivers/mtd/nand/hifmc100/hifmc100_spi_general.c-68-    FMC_PR(FT_DBG, "\t||||-Set OP_CFG[%#x]%#x\n", FMC_OP_CFG, reg);
+drivers/mtd/nand/hifmc100/hifmc100_spi_general.c-69-
+drivers/mtd/nand/hifmc100/hifmc100_spi_general.c-70-    reg = FMC_DATA_NUM_CNT(FEATURES_DATA_LEN);
+drivers/mtd/nand/hifmc100/hifmc100_spi_general.c-71-    hifmc_writel(host, FMC_DATA_NUM, reg);
+drivers/mtd/nand/hifmc100/hifmc100_spi_general.c-72-    FMC_PR(FT_DBG, "\t||||-Set DATA_NUM[%#x]%#x\n", FMC_DATA_NUM, reg);
+drivers/mtd/nand/hifmc100/hifmc100_spi_general.c-73-
+drivers/mtd/nand/hifmc100/hifmc100_spi_general.c-74-    reg = FMC_OP_CMD1_EN
+drivers/mtd/nand/hifmc100/hifmc100_spi_general.c-75-          | FMC_OP_ADDR_EN
+drivers/mtd/nand/hifmc100/hifmc100_spi_general.c-76-          | FMC_OP_REG_OP_START;
+drivers/mtd/nand/hifmc100/hifmc100_spi_general.c-77-
+drivers/mtd/nand/hifmc100/hifmc100_spi_general.c-78-    if (op == SET_OP) {
+drivers/mtd/nand/hifmc100/hifmc100_spi_general.c-79-        reg |= FMC_OP_WRITE_DATA_EN;
+drivers/mtd/nand/hifmc100/hifmc100_spi_general.c-80-        hifmc_writeb(val, host->iobase);
+drivers/mtd/nand/hifmc100/hifmc100_spi_general.c-81-        FMC_PR(FT_DBG, "\t||||-Write IO[%#lx]%#x\n", (long)host->iobase,
+drivers/mtd/nand/hifmc100/hifmc100_spi_general.c-82-               *(u_char *)host->iobase);
+drivers/mtd/nand/hifmc100/hifmc100_spi_general.c-83-    } else {
+drivers/mtd/nand/hifmc100/hifmc100_spi_general.c-84-        reg |= FMC_OP_READ_DATA_EN;
+drivers/mtd/nand/hifmc100/hifmc100_spi_general.c-85-    }
+drivers/mtd/nand/hifmc100/hifmc100_spi_general.c-86-
+drivers/mtd/nand/hifmc100/hifmc100_spi_general.c-87-    hifmc_writel(host, FMC_OP, reg);
+drivers/mtd/nand/hifmc100/hifmc100_spi_general.c-88-    FMC_PR(FT_DBG, "\t||||-Set OP[%#x]%#x\n", FMC_OP, reg);
+drivers/mtd/nand/hifmc100/hifmc100_spi_general.c-89-
+drivers/mtd/nand/hifmc100/hifmc100_spi_general.c-90-    FMC_CMD_WAIT_CPU_FINISH(host);
+--
+drivers/mtd/nand/hifmc100/hifmc100_spi_general.c-162-        reg &= ~FMC_GLOBAL_CFG_WP_ENABLE;
+drivers/mtd/nand/hifmc100/hifmc100_spi_general.c-163-        hifmc_writel(host, FMC_GLOBAL_CFG, reg);
+drivers/mtd/nand/hifmc100/hifmc100_spi_general.c-164-        FMC_PR(WE_DBG, "\t||-Set GLOBAL_CFG[%#x]%#x\n",
+drivers/mtd/nand/hifmc100/hifmc100_spi_general.c-165-               FMC_GLOBAL_CFG, reg);
+drivers/mtd/nand/hifmc100/hifmc100_spi_general.c-166-    }
+drivers/mtd/nand/hifmc100/hifmc100_spi_general.c-167-
+drivers/mtd/nand/hifmc100/hifmc100_spi_general.c-168-    reg = FMC_CMD_CMD1(SPI_CMD_WREN);
+drivers/mtd/nand/hifmc100/hifmc100_spi_general.c-169-    hifmc_writel(host, FMC_CMD, reg);
+drivers/mtd/nand/hifmc100/hifmc100_spi_general.c-170-    FMC_PR(WE_DBG, "\t||-Set CMD[%#x]%#x\n", FMC_CMD, reg);
+drivers/mtd/nand/hifmc100/hifmc100_spi_general.c-171-
+drivers/mtd/nand/hifmc100/hifmc100_spi_general.c:172:    reg = OP_CFG_FM_CS(host->cmd_op.cs) | OP_CFG_OEN_EN;
+drivers/mtd/nand/hifmc100/hifmc100_spi_general.c-173-    hifmc_writel(host, FMC_OP_CFG, reg);
+drivers/mtd/nand/hifmc100/hifmc100_spi_general.c-174-    FMC_PR(WE_DBG, "\t||-Set OP_CFG[%#x]%#x\n", FMC_OP_CFG, reg);
+drivers/mtd/nand/hifmc100/hifmc100_spi_general.c-175-
+drivers/mtd/nand/hifmc100/hifmc100_spi_general.c-176-    reg = FMC_OP_CMD1_EN | FMC_OP_REG_OP_START;
+drivers/mtd/nand/hifmc100/hifmc100_spi_general.c-177-    hifmc_writel(host, FMC_OP, reg);
+drivers/mtd/nand/hifmc100/hifmc100_spi_general.c-178-    FMC_PR(WE_DBG, "\t||-Set OP[%#x]%#x\n", FMC_OP, reg);
+drivers/mtd/nand/hifmc100/hifmc100_spi_general.c-179-
+drivers/mtd/nand/hifmc100/hifmc100_spi_general.c-180-    FMC_CMD_WAIT_CPU_FINISH(host);
+drivers/mtd/nand/hifmc100/hifmc100_spi_general.c-181-
+drivers/mtd/nand/hifmc100/hifmc100_spi_general.c-182-#if WE_DBG
+drivers/mtd/nand/hifmc100/hifmc100_spi_general.c-183-    spi->driver->wait_ready(spi);
+drivers/mtd/nand/hifmc100/hifmc100_spi_general.c-184-
+drivers/mtd/nand/hifmc100/hifmc100_spi_general.c-185-    reg = spi_nand_feature_op(spi, GET_OP, STATUS_ADDR, 0);
+drivers/mtd/nand/hifmc100/hifmc100_spi_general.c-186-    if (reg & STATUS_WEL_MASK) {
+drivers/mtd/nand/hifmc100/hifmc100_spi_general.c-187-        FMC_PR(WE_DBG, "\t||-Write Enable success. reg: %#x\n", reg);
+drivers/mtd/nand/hifmc100/hifmc100_spi_general.c-188-    } else {
+drivers/mtd/nand/hifmc100/hifmc100_spi_general.c-189-        DB_MSG("Error: Write Enable failed! reg: %#x\n", reg);
+drivers/mtd/nand/hifmc100/hifmc100_spi_general.c-190-        return reg;
+drivers/mtd/nand/hifmc100/hifmc100_spi_general.c-191-    }
+drivers/mtd/nand/hifmc100/hifmc100_spi_general.c-192-#endif
+drivers/mtd/nand/hifmc100/hifmc100_spi_general.c-193-
+drivers/mtd/nand/hifmc100/hifmc100_spi_general.c-194-    FMC_PR(WE_DBG, "\t|*-End Write Enable\n");
+drivers/mtd/nand/hifmc100/hifmc100_spi_general.c-195-    return 0;
+drivers/mtd/nand/hifmc100/hifmc100_spi_general.c-196-}
+drivers/mtd/nand/hifmc100/hifmc100_spi_general.c-197-
+--
+drivers/mtd/nand/hifmc100/hifmc100.c-117-    if (reg) {
+drivers/mtd/nand/hifmc100/hifmc100.c-118-        DB_MSG("Error: %s program write enable failed! reg: %#x\n",
+drivers/mtd/nand/hifmc100/hifmc100.c-119-               op, reg);
+drivers/mtd/nand/hifmc100/hifmc100.c-120-        goto end;
+drivers/mtd/nand/hifmc100/hifmc100.c-121-    }
+drivers/mtd/nand/hifmc100/hifmc100.c-122-
+drivers/mtd/nand/hifmc100/hifmc100.c-123-    reg = FMC_INT_CLR_ALL;
+drivers/mtd/nand/hifmc100/hifmc100.c-124-    hifmc_writel(host, FMC_INT_CLR, reg);
+drivers/mtd/nand/hifmc100/hifmc100.c-125-    FMC_PR(WR_DBG, "|-Set INT_CLR[%#x]%#x\n", FMC_INT_CLR, reg);
+drivers/mtd/nand/hifmc100/hifmc100.c-126-
+drivers/mtd/nand/hifmc100/hifmc100.c:127:    reg = OP_CFG_FM_CS(host->cmd_op.cs)
+drivers/mtd/nand/hifmc100/hifmc100.c-128-          | OP_CFG_MEM_IF_TYPE(spi->write->iftype)
+drivers/mtd/nand/hifmc100/hifmc100.c-129-          | OP_CFG_OEN_EN;
+drivers/mtd/nand/hifmc100/hifmc100.c-130-    hifmc_writel(host, FMC_OP_CFG, reg);
+drivers/mtd/nand/hifmc100/hifmc100.c-131-    FMC_PR(WR_DBG, "|-Set OP_CFG[%#x]%#x\n", FMC_OP_CFG, reg);
+drivers/mtd/nand/hifmc100/hifmc100.c-132-
+drivers/mtd/nand/hifmc100/hifmc100.c-133-    pages_per_block_shift = chip->phys_erase_shift - chip->page_shift;
+drivers/mtd/nand/hifmc100/hifmc100.c-134-    block_num = host->addr_value[1] >> pages_per_block_shift;
+drivers/mtd/nand/hifmc100/hifmc100.c-135-    block_num_h = block_num >> REG_CNT_HIGH_BLOCK_NUM_SHIFT;
+drivers/mtd/nand/hifmc100/hifmc100.c:136:    reg = FMC_ADDRH_SET(block_num_h);
+drivers/mtd/nand/hifmc100/hifmc100.c-137-    hifmc_writel(host, FMC_ADDRH, reg);
+drivers/mtd/nand/hifmc100/hifmc100.c-138-    FMC_PR(WR_DBG, "|-Set ADDRH[%#x]%#x\n", FMC_ADDRH, reg);
+drivers/mtd/nand/hifmc100/hifmc100.c-139-
+drivers/mtd/nand/hifmc100/hifmc100.c-140-    page_num = host->addr_value[1] - (block_num << pages_per_block_shift);
+drivers/mtd/nand/hifmc100/hifmc100.c-141-    reg = ((block_num & REG_CNT_BLOCK_NUM_MASK) << REG_CNT_BLOCK_NUM_SHIFT)
+drivers/mtd/nand/hifmc100/hifmc100.c-142-          | ((page_num & REG_CNT_PAGE_NUM_MASK) << REG_CNT_PAGE_NUM_SHIFT);
+drivers/mtd/nand/hifmc100/hifmc100.c-143-    hifmc_writel(host, FMC_ADDRL, reg);
+drivers/mtd/nand/hifmc100/hifmc100.c-144-    FMC_PR(WR_DBG, "|-Set ADDRL[%#x]%#x\n", FMC_ADDRL, reg);
+drivers/mtd/nand/hifmc100/hifmc100.c-145-
+drivers/mtd/nand/hifmc100/hifmc100.c-146-    *host->epm = 0x0000;
+drivers/mtd/nand/hifmc100/hifmc100.c-147-
+drivers/mtd/nand/hifmc100/hifmc100.c-148-#ifndef HIFMC100_SPI_NAND_SUPPORT_REG_WRITE
+drivers/mtd/nand/hifmc100/hifmc100.c-149-    reg = host->dma_buffer;
+drivers/mtd/nand/hifmc100/hifmc100.c-150-    hifmc_writel(host, FMC_DMA_SADDR_D0, reg);
+drivers/mtd/nand/hifmc100/hifmc100.c-151-    FMC_PR(WR_DBG, "|-Set DMA_SADDR_D[0x40]%#x\n", reg);
+drivers/mtd/nand/hifmc100/hifmc100.c-152-
+drivers/mtd/nand/hifmc100/hifmc100.c-153-#ifdef CONFIG_64BIT
+drivers/mtd/nand/hifmc100/hifmc100.c-154-    reg = (host->dma_buffer & FMC_DMA_SADDRH_MASK) >> 32;
+drivers/mtd/nand/hifmc100/hifmc100.c-155-    hifmc_writel(host, FMC_DMA_SADDRH_D0, reg);
+drivers/mtd/nand/hifmc100/hifmc100.c-156-    FMC_PR(WR_DBG, "\t|-Set DMA_SADDRH_D0[%#x]%#x\n", FMC_DMA_SADDRH_D0, reg);
+drivers/mtd/nand/hifmc100/hifmc100.c-157-#endif
+drivers/mtd/nand/hifmc100/hifmc100.c-158-
+drivers/mtd/nand/hifmc100/hifmc100.c-159-    reg = host->dma_oob;
+drivers/mtd/nand/hifmc100/hifmc100.c-160-    hifmc_writel(host, FMC_DMA_SADDR_OOB, reg);
+drivers/mtd/nand/hifmc100/hifmc100.c-161-    FMC_PR(WR_DBG, "|-Set DMA_SADDR_OOB[%#x]%#x\n", FMC_DMA_SADDR_OOB, reg);
+--
+drivers/mtd/nand/hifmc100/hifmc100.c-234-        DB_MSG("Error: %s read wait ready fail! reg: %#x\n", op, reg);
+drivers/mtd/nand/hifmc100/hifmc100.c-235-        goto end;
+drivers/mtd/nand/hifmc100/hifmc100.c-236-    }
+drivers/mtd/nand/hifmc100/hifmc100.c-237-
+drivers/mtd/nand/hifmc100/hifmc100.c-238-    reg = FMC_INT_CLR_ALL;
+drivers/mtd/nand/hifmc100/hifmc100.c-239-    hifmc_writel(host, FMC_INT_CLR, reg);
+drivers/mtd/nand/hifmc100/hifmc100.c-240-    FMC_PR(RD_DBG, "\t|-Set INT_CLR[%#x]%#x\n", FMC_INT_CLR, reg);
+drivers/mtd/nand/hifmc100/hifmc100.c-241-
+drivers/mtd/nand/hifmc100/hifmc100.c-242-    if (host->cmd_op.l_cmd == NAND_CMD_READOOB) {
+drivers/mtd/nand/hifmc100/hifmc100.c-243-        only_oob = 1;
+drivers/mtd/nand/hifmc100/hifmc100.c:244:        host->cmd_op.op_cfg = OP_CTRL_RD_OP_SEL(RD_OP_READ_OOB);
+drivers/mtd/nand/hifmc100/hifmc100.c-245-    } else {
+drivers/mtd/nand/hifmc100/hifmc100.c:246:        host->cmd_op.op_cfg = OP_CTRL_RD_OP_SEL(RD_OP_READ_ALL_PAGE);
+drivers/mtd/nand/hifmc100/hifmc100.c-247-    }
+drivers/mtd/nand/hifmc100/hifmc100.c-248-
+drivers/mtd/nand/hifmc100/hifmc100.c:249:    reg = OP_CFG_FM_CS(host->cmd_op.cs)
+drivers/mtd/nand/hifmc100/hifmc100.c-250-          | OP_CFG_MEM_IF_TYPE(spi->read->iftype)
+drivers/mtd/nand/hifmc100/hifmc100.c-251-          | OP_CFG_DUMMY_NUM(spi->read->dummy)
+drivers/mtd/nand/hifmc100/hifmc100.c-252-          | OP_CFG_OEN_EN;
+drivers/mtd/nand/hifmc100/hifmc100.c-253-    hifmc_writel(host, FMC_OP_CFG, reg);
+drivers/mtd/nand/hifmc100/hifmc100.c-254-    FMC_PR(RD_DBG, "\t|-Set OP_CFG[%#x]%#x\n", FMC_OP_CFG, reg);
+drivers/mtd/nand/hifmc100/hifmc100.c-255-
+drivers/mtd/nand/hifmc100/hifmc100.c-256-    pages_per_block_shift = chip->phys_erase_shift - chip->page_shift;
+drivers/mtd/nand/hifmc100/hifmc100.c-257-    block_num = host->addr_value[1] >> pages_per_block_shift;
+drivers/mtd/nand/hifmc100/hifmc100.c-258-    block_num_h = block_num >> REG_CNT_HIGH_BLOCK_NUM_SHIFT;
+drivers/mtd/nand/hifmc100/hifmc100.c-259-
+drivers/mtd/nand/hifmc100/hifmc100.c:260:    reg = FMC_ADDRH_SET(block_num_h);
+drivers/mtd/nand/hifmc100/hifmc100.c-261-    hifmc_writel(host, FMC_ADDRH, reg);
+drivers/mtd/nand/hifmc100/hifmc100.c-262-    FMC_PR(RD_DBG, "\t|-Set ADDRH[%#x]%#x\n", FMC_ADDRH, reg);
+drivers/mtd/nand/hifmc100/hifmc100.c-263-
+drivers/mtd/nand/hifmc100/hifmc100.c-264-    page_num = host->addr_value[1] - (block_num << pages_per_block_shift);
+drivers/mtd/nand/hifmc100/hifmc100.c-265-    if (only_oob)
+drivers/mtd/nand/hifmc100/hifmc100.c-266-        switch (host->ecctype) {
+drivers/mtd/nand/hifmc100/hifmc100.c-267-            case NAND_ECC_8BIT:
+drivers/mtd/nand/hifmc100/hifmc100.c-268-                addr_of = REG_CNT_ECC_8BIT_OFFSET;
+drivers/mtd/nand/hifmc100/hifmc100.c-269-                break;
+drivers/mtd/nand/hifmc100/hifmc100.c-270-            case NAND_ECC_16BIT:
+drivers/mtd/nand/hifmc100/hifmc100.c-271-                addr_of = REG_CNT_ECC_16BIT_OFFSET;
+drivers/mtd/nand/hifmc100/hifmc100.c-272-                break;
+drivers/mtd/nand/hifmc100/hifmc100.c-273-            case NAND_ECC_24BIT:
+drivers/mtd/nand/hifmc100/hifmc100.c-274-                addr_of = REG_CNT_ECC_24BIT_OFFSET;
+drivers/mtd/nand/hifmc100/hifmc100.c-275-                break;
+drivers/mtd/nand/hifmc100/hifmc100.c-276-            case NAND_ECC_0BIT:
+drivers/mtd/nand/hifmc100/hifmc100.c-277-            default:
+drivers/mtd/nand/hifmc100/hifmc100.c-278-                break;
+drivers/mtd/nand/hifmc100/hifmc100.c-279-        }
+drivers/mtd/nand/hifmc100/hifmc100.c-280-
+drivers/mtd/nand/hifmc100/hifmc100.c-281-    reg = ((block_num & REG_CNT_BLOCK_NUM_MASK) << REG_CNT_BLOCK_NUM_SHIFT)
+drivers/mtd/nand/hifmc100/hifmc100.c-282-          | ((page_num & REG_CNT_PAGE_NUM_MASK) << REG_CNT_PAGE_NUM_SHIFT)
+drivers/mtd/nand/hifmc100/hifmc100.c-283-          | ((wrap & REG_CNT_WRAP_MASK) << REG_CNT_WRAP_SHIFT)
+drivers/mtd/nand/hifmc100/hifmc100.c-284-          | (addr_of & REG_CNT_ECC_OFFSET_MASK);
+drivers/mtd/nand/hifmc100/hifmc100.c-285-    hifmc_writel(host, FMC_ADDRL, reg);
+--
+drivers/mtd/nand/hifmc100/hifmc100.c-302-           reg);
+drivers/mtd/nand/hifmc100/hifmc100.c-303-
+drivers/mtd/nand/hifmc100/hifmc100.c-304-#ifdef CONFIG_64BIT
+drivers/mtd/nand/hifmc100/hifmc100.c-305-    reg = (host->dma_oob & FMC_DMA_SADDRH_MASK) >> 32;
+drivers/mtd/nand/hifmc100/hifmc100.c-306-    hifmc_writel(host, FMC_DMA_SADDRH_OOB, reg);
+drivers/mtd/nand/hifmc100/hifmc100.c-307-    FMC_PR(RD_DBG, "\t|-Set DMA_SADDRH_OOB[%#x]%#x\n", FMC_DMA_SADDRH_OOB,
+drivers/mtd/nand/hifmc100/hifmc100.c-308-           reg);
+drivers/mtd/nand/hifmc100/hifmc100.c-309-#endif
+drivers/mtd/nand/hifmc100/hifmc100.c-310-#endif
+drivers/mtd/nand/hifmc100/hifmc100.c-311-
+drivers/mtd/nand/hifmc100/hifmc100.c:312:    reg = OP_CTRL_RD_OPCODE(spi->read->cmd) | host->cmd_op.op_cfg
+drivers/mtd/nand/hifmc100/hifmc100.c-313-#ifdef HIFMC100_SPI_NAND_SUPPORT_REG_READ
+drivers/mtd/nand/hifmc100/hifmc100.c-314-          | OP_CTRL_DMA_OP(OP_TYPE_REG)
+drivers/mtd/nand/hifmc100/hifmc100.c-315-#else
+drivers/mtd/nand/hifmc100/hifmc100.c-316-          | OP_CTRL_DMA_OP(OP_TYPE_DMA)
+drivers/mtd/nand/hifmc100/hifmc100.c-317-#endif
+drivers/mtd/nand/hifmc100/hifmc100.c-318-          | OP_CTRL_RW_OP(RW_OP_READ) | OP_CTRL_DMA_OP_READY;
+drivers/mtd/nand/hifmc100/hifmc100.c-319-    hifmc_writel(host, FMC_OP_CTRL, reg);
+drivers/mtd/nand/hifmc100/hifmc100.c-320-    FMC_PR(RD_DBG, "\t|-Set OP_CTRL[%#x]%#x\n", FMC_OP_CTRL, reg);
+drivers/mtd/nand/hifmc100/hifmc100.c-321-
+drivers/mtd/nand/hifmc100/hifmc100.c-322-    FMC_DMA_WAIT_INT_FINISH(host);
+drivers/mtd/nand/hifmc100/hifmc100.c-323-
+drivers/mtd/nand/hifmc100/hifmc100.c-324-    host->cache_addr_value[0] = host->addr_value[0];
+drivers/mtd/nand/hifmc100/hifmc100.c-325-    host->cache_addr_value[1] = host->addr_value[1];
+drivers/mtd/nand/hifmc100/hifmc100.c-326-
+drivers/mtd/nand/hifmc100/hifmc100.c-327-end:
+drivers/mtd/nand/hifmc100/hifmc100.c-328-    mutex_unlock(host->lock);
+drivers/mtd/nand/hifmc100/hifmc100.c-329-    FMC_PR(RD_DBG, "\t*-End %s page read\n", op);
+drivers/mtd/nand/hifmc100/hifmc100.c-330-}
+drivers/mtd/nand/hifmc100/hifmc100.c-331-
+drivers/mtd/nand/hifmc100/hifmc100.c-332-/*****************************************************************************/
+drivers/mtd/nand/hifmc100/hifmc100.c-333-static void hifmc100_send_cmd_erase(struct hifmc_host *host)
+drivers/mtd/nand/hifmc100/hifmc100.c-334-{
+drivers/mtd/nand/hifmc100/hifmc100.c-335-    unsigned int reg;
+drivers/mtd/nand/hifmc100/hifmc100.c-336-    struct hifmc_spi *spi = host->spi;
+drivers/mtd/nand/hifmc100/hifmc100.c-337-
+--
+drivers/mtd/nand/hifmc100/hifmc100.c-362-
+drivers/mtd/nand/hifmc100/hifmc100.c-363-    reg = spi->erase->cmd;
+drivers/mtd/nand/hifmc100/hifmc100.c-364-    hifmc_writel(host, FMC_CMD, FMC_CMD_CMD1(reg));
+drivers/mtd/nand/hifmc100/hifmc100.c-365-    FMC_PR(ER_DBG, "\t|-Set CMD[%#x]%#x\n", FMC_CMD, reg);
+drivers/mtd/nand/hifmc100/hifmc100.c-366-
+drivers/mtd/nand/hifmc100/hifmc100.c-367-    reg = FMC_ADDRL_BLOCK_H_MASK(host->addr_value[1])
+drivers/mtd/nand/hifmc100/hifmc100.c-368-          | FMC_ADDRL_BLOCK_L_MASK(host->addr_value[0]);
+drivers/mtd/nand/hifmc100/hifmc100.c-369-    hifmc_writel(host, FMC_ADDRL, reg);
+drivers/mtd/nand/hifmc100/hifmc100.c-370-    FMC_PR(ER_DBG, "\t|-Set ADDRL[%#x]%#x\n", FMC_ADDRL, reg);
+drivers/mtd/nand/hifmc100/hifmc100.c-371-
+drivers/mtd/nand/hifmc100/hifmc100.c:372:    reg = OP_CFG_FM_CS(host->cmd_op.cs)
+drivers/mtd/nand/hifmc100/hifmc100.c-373-          | OP_CFG_MEM_IF_TYPE(spi->erase->iftype)
+drivers/mtd/nand/hifmc100/hifmc100.c:374:          | OP_CFG_ADDR_NUM(STD_OP_ADDR_NUM)
+drivers/mtd/nand/hifmc100/hifmc100.c-375-          | OP_CFG_DUMMY_NUM(spi->erase->dummy)
+drivers/mtd/nand/hifmc100/hifmc100.c-376-          | OP_CFG_OEN_EN;
+drivers/mtd/nand/hifmc100/hifmc100.c-377-    hifmc_writel(host, FMC_OP_CFG, reg);
+drivers/mtd/nand/hifmc100/hifmc100.c-378-    FMC_PR(ER_DBG, "\t|-Set OP_CFG[%#x]%#x\n", FMC_OP_CFG, reg);
+drivers/mtd/nand/hifmc100/hifmc100.c-379-
+drivers/mtd/nand/hifmc100/hifmc100.c-380-    reg = FMC_OP_CMD1_EN
+drivers/mtd/nand/hifmc100/hifmc100.c-381-          | FMC_OP_ADDR_EN
+drivers/mtd/nand/hifmc100/hifmc100.c-382-          | FMC_OP_REG_OP_START;
+drivers/mtd/nand/hifmc100/hifmc100.c-383-    hifmc_writel(host, FMC_OP, reg);
+drivers/mtd/nand/hifmc100/hifmc100.c-384-    FMC_PR(ER_DBG, "\t|-Set OP[%#x]%#x\n", FMC_OP, reg);
+drivers/mtd/nand/hifmc100/hifmc100.c-385-
+drivers/mtd/nand/hifmc100/hifmc100.c-386-    FMC_CMD_WAIT_CPU_FINISH(host);
+drivers/mtd/nand/hifmc100/hifmc100.c-387-
+drivers/mtd/nand/hifmc100/hifmc100.c-388-end:
+drivers/mtd/nand/hifmc100/hifmc100.c-389-    mutex_unlock(host->lock);
+drivers/mtd/nand/hifmc100/hifmc100.c-390-    FMC_PR(ER_DBG, "\t*-End send cmd erase!\n");
+drivers/mtd/nand/hifmc100/hifmc100.c-391-}
+drivers/mtd/nand/hifmc100/hifmc100.c-392-
+drivers/mtd/nand/hifmc100/hifmc100.c-393-/*****************************************************************************/
+drivers/mtd/nand/hifmc100/hifmc100.c-394-void hifmc100_ecc0_switch(struct hifmc_host *host, unsigned char op)
+drivers/mtd/nand/hifmc100/hifmc100.c-395-{
+drivers/mtd/nand/hifmc100/hifmc100.c-396-    unsigned int config;
+drivers/mtd/nand/hifmc100/hifmc100.c-397-#if EC_DBG
+drivers/mtd/nand/hifmc100/hifmc100.c-398-    unsigned int cmp_cfg;
+drivers/mtd/nand/hifmc100/hifmc100.c-399-
+--
+drivers/mtd/nand/hifmc100/hifmc100.c-434-    hifmc100_ecc0_switch(host, ENABLE);
+drivers/mtd/nand/hifmc100/hifmc100.c-435-
+drivers/mtd/nand/hifmc100/hifmc100.c-436-    reg = FMC_CMD_CMD1(SPI_CMD_RDID);
+drivers/mtd/nand/hifmc100/hifmc100.c-437-    hifmc_writel(host, FMC_CMD, reg);
+drivers/mtd/nand/hifmc100/hifmc100.c-438-    FMC_PR(BT_DBG, "\t||-Set CMD[%#x]%#x\n", FMC_CMD, reg);
+drivers/mtd/nand/hifmc100/hifmc100.c-439-
+drivers/mtd/nand/hifmc100/hifmc100.c-440-    reg = READ_ID_ADDR;
+drivers/mtd/nand/hifmc100/hifmc100.c-441-    hifmc_writel(host, FMC_ADDRL, reg);
+drivers/mtd/nand/hifmc100/hifmc100.c-442-    FMC_PR(BT_DBG, "\t||-Set ADDRL[%#x]%#x\n", FMC_ADDRL, reg);
+drivers/mtd/nand/hifmc100/hifmc100.c-443-
+drivers/mtd/nand/hifmc100/hifmc100.c:444:    reg = OP_CFG_FM_CS(host->cmd_op.cs)
+drivers/mtd/nand/hifmc100/hifmc100.c:445:          | OP_CFG_ADDR_NUM(READ_ID_ADDR_NUM)
+drivers/mtd/nand/hifmc100/hifmc100.c-446-          | OP_CFG_OEN_EN;
+drivers/mtd/nand/hifmc100/hifmc100.c-447-    hifmc_writel(host, FMC_OP_CFG, reg);
+drivers/mtd/nand/hifmc100/hifmc100.c-448-    FMC_PR(BT_DBG, "\t||-Set OP_CFG[%#x]%#x\n", FMC_OP_CFG, reg);
+drivers/mtd/nand/hifmc100/hifmc100.c-449-
+drivers/mtd/nand/hifmc100/hifmc100.c-450-    reg = FMC_DATA_NUM_CNT(MAX_SPI_NAND_ID_LEN);
+drivers/mtd/nand/hifmc100/hifmc100.c-451-    hifmc_writel(host, FMC_DATA_NUM, reg);
+drivers/mtd/nand/hifmc100/hifmc100.c-452-    FMC_PR(BT_DBG, "\t||-Set DATA_NUM[%#x]%#x\n", FMC_DATA_NUM, reg);
+drivers/mtd/nand/hifmc100/hifmc100.c-453-
+drivers/mtd/nand/hifmc100/hifmc100.c-454-    reg = FMC_OP_CMD1_EN
+drivers/mtd/nand/hifmc100/hifmc100.c-455-          | FMC_OP_ADDR_EN
+drivers/mtd/nand/hifmc100/hifmc100.c-456-          | FMC_OP_READ_DATA_EN
+drivers/mtd/nand/hifmc100/hifmc100.c-457-          | FMC_OP_REG_OP_START;
+drivers/mtd/nand/hifmc100/hifmc100.c-458-    hifmc_writel(host, FMC_OP, reg);
+drivers/mtd/nand/hifmc100/hifmc100.c-459-    FMC_PR(BT_DBG, "\t||-Set OP[%#x]%#x\n", FMC_OP, reg);
+drivers/mtd/nand/hifmc100/hifmc100.c-460-
+drivers/mtd/nand/hifmc100/hifmc100.c-461-    host->addr_cycle = 0x0;
+drivers/mtd/nand/hifmc100/hifmc100.c-462-
+drivers/mtd/nand/hifmc100/hifmc100.c-463-    FMC_CMD_WAIT_CPU_FINISH(host);
+drivers/mtd/nand/hifmc100/hifmc100.c-464-
+drivers/mtd/nand/hifmc100/hifmc100.c-465-    hifmc100_ecc0_switch(host, DISABLE);
+drivers/mtd/nand/hifmc100/hifmc100.c-466-
+drivers/mtd/nand/hifmc100/hifmc100.c-467-    FMC_PR(BT_DBG, "\t|*-End read flash ID\n");
+drivers/mtd/nand/hifmc100/hifmc100.c-468-}
+drivers/mtd/nand/hifmc100/hifmc100.c-469-
+drivers/mtd/nand/hifmc100/hifmc100.c-470-/*****************************************************************************/
+drivers/mtd/nand/hifmc100/hifmc100.c-471-static void hifmc100_send_cmd_reset(struct hifmc_host *host)
+drivers/mtd/nand/hifmc100/hifmc100.c-472-{
+drivers/mtd/nand/hifmc100/hifmc100.c-473-    unsigned int reg;
+drivers/mtd/nand/hifmc100/hifmc100.c-474-
+drivers/mtd/nand/hifmc100/hifmc100.c-475-    FMC_PR(BT_DBG, "\t|*-Start send cmd reset\n");
+drivers/mtd/nand/hifmc100/hifmc100.c-476-
+drivers/mtd/nand/hifmc100/hifmc100.c-477-    reg = FMC_CMD_CMD1(SPI_CMD_RESET);
+drivers/mtd/nand/hifmc100/hifmc100.c-478-    hifmc_writel(host, FMC_CMD, reg);
+drivers/mtd/nand/hifmc100/hifmc100.c-479-    FMC_PR(BT_DBG, "\t||-Set CMD[%#x]%#x\n", FMC_CMD, reg);
+drivers/mtd/nand/hifmc100/hifmc100.c-480-
+drivers/mtd/nand/hifmc100/hifmc100.c:481:    reg = OP_CFG_FM_CS(host->cmd_op.cs) | OP_CFG_OEN_EN;
+drivers/mtd/nand/hifmc100/hifmc100.c-482-    hifmc_writel(host, FMC_OP_CFG, reg);
+drivers/mtd/nand/hifmc100/hifmc100.c-483-    FMC_PR(BT_DBG, "\t||-Set OP_CFG[%#x]%#x\n", FMC_OP_CFG, reg);
+drivers/mtd/nand/hifmc100/hifmc100.c-484-
+drivers/mtd/nand/hifmc100/hifmc100.c-485-    reg = FMC_OP_CMD1_EN | FMC_OP_REG_OP_START;
+drivers/mtd/nand/hifmc100/hifmc100.c-486-    hifmc_writel(host, FMC_OP, reg);
+drivers/mtd/nand/hifmc100/hifmc100.c-487-    FMC_PR(BT_DBG, "\t||-Set OP[%#x]%#x\n", FMC_OP, reg);
+drivers/mtd/nand/hifmc100/hifmc100.c-488-
+drivers/mtd/nand/hifmc100/hifmc100.c-489-    FMC_CMD_WAIT_CPU_FINISH(host);
+drivers/mtd/nand/hifmc100/hifmc100.c-490-
+drivers/mtd/nand/hifmc100/hifmc100.c-491-    FMC_PR(BT_DBG, "\t|*-End send cmd reset\n");
+drivers/mtd/nand/hifmc100/hifmc100.c-492-}
+drivers/mtd/nand/hifmc100/hifmc100.c-493-
+drivers/mtd/nand/hifmc100/hifmc100.c-494-/*****************************************************************************/
+drivers/mtd/nand/hifmc100/hifmc100.c-495-static void hifmc100_host_init(struct hifmc_host *host)
+drivers/mtd/nand/hifmc100/hifmc100.c-496-{
+drivers/mtd/nand/hifmc100/hifmc100.c-497-    unsigned int reg;
+drivers/mtd/nand/hifmc100/hifmc100.c-498-
+drivers/mtd/nand/hifmc100/hifmc100.c-499-    FMC_PR(BT_DBG, "\t||*-Start SPI Nand host init\n");
+drivers/mtd/nand/hifmc100/hifmc100.c-500-
+drivers/mtd/nand/hifmc100/hifmc100.c-501-    reg = hifmc_readl(host, FMC_CFG);
+drivers/mtd/nand/hifmc100/hifmc100.c-502-    if ((reg & FMC_CFG_OP_MODE_MASK) == FMC_CFG_OP_MODE_BOOT) {
+drivers/mtd/nand/hifmc100/hifmc100.c-503-        reg |= FMC_CFG_OP_MODE(FMC_CFG_OP_MODE_NORMAL);
+drivers/mtd/nand/hifmc100/hifmc100.c-504-        hifmc_writel(host, FMC_CFG, reg);
+drivers/mtd/nand/hifmc100/hifmc100.c-505-        FMC_PR(BT_DBG, "\t|||-Set CFG[%#x]%#x\n", FMC_CFG, reg);
+drivers/mtd/nand/hifmc100/hifmc100.c-506-    }
+--
+drivers/mtd/nand/hifmc100/hifmc100.c-797-
+drivers/mtd/nand/hifmc100/hifmc100.c-798-/*****************************************************************************/
+drivers/mtd/nand/hifmc100/hifmc100.c-799-static int hifmc100_dev_ready(struct mtd_info *mtd)
+drivers/mtd/nand/hifmc100/hifmc100.c-800-{
+drivers/mtd/nand/hifmc100/hifmc100.c-801-    unsigned int reg;
+drivers/mtd/nand/hifmc100/hifmc100.c-802-    unsigned long deadline = jiffies + FMC_MAX_READY_WAIT_JIFFIES;
+drivers/mtd/nand/hifmc100/hifmc100.c-803-    struct nand_chip *chip = mtd_to_nand(mtd);
+drivers/mtd/nand/hifmc100/hifmc100.c-804-    struct hifmc_host *host = chip->priv;
+drivers/mtd/nand/hifmc100/hifmc100.c-805-
+drivers/mtd/nand/hifmc100/hifmc100.c-806-    do {
+drivers/mtd/nand/hifmc100/hifmc100.c:807:        reg = OP_CFG_FM_CS(host->cmd_op.cs) | OP_CFG_OEN_EN;
+drivers/mtd/nand/hifmc100/hifmc100.c-808-        hifmc_writel(host, FMC_OP_CFG, reg);
+drivers/mtd/nand/hifmc100/hifmc100.c-809-
+drivers/mtd/nand/hifmc100/hifmc100.c-810-        reg = FMC_OP_READ_STATUS_EN | FMC_OP_REG_OP_START;
+drivers/mtd/nand/hifmc100/hifmc100.c-811-        hifmc_writel(host, FMC_OP, reg);
+drivers/mtd/nand/hifmc100/hifmc100.c-812-
+drivers/mtd/nand/hifmc100/hifmc100.c-813-        FMC_CMD_WAIT_CPU_FINISH(host);
+drivers/mtd/nand/hifmc100/hifmc100.c-814-
+drivers/mtd/nand/hifmc100/hifmc100.c-815-        reg = hifmc_readl(host, FMC_STATUS);
+drivers/mtd/nand/hifmc100/hifmc100.c-816-
+drivers/mtd/nand/hifmc100/hifmc100.c-817-        if (!(reg & STATUS_OIP_MASK)) {
+drivers/mtd/nand/hifmc100/hifmc100.c-818-            return NAND_STATUS_READY;
+drivers/mtd/nand/hifmc100/hifmc100.c-819-        }
+drivers/mtd/nand/hifmc100/hifmc100.c-820-
+drivers/mtd/nand/hifmc100/hifmc100.c-821-        cond_resched();
+drivers/mtd/nand/hifmc100/hifmc100.c-822-
+drivers/mtd/nand/hifmc100/hifmc100.c-823-    } while (!time_after_eq(jiffies, deadline));
+drivers/mtd/nand/hifmc100/hifmc100.c-824-
+drivers/mtd/nand/hifmc100/hifmc100.c-825-    if (!(chip->options & NAND_SCAN_SILENT_NODEV)) {
+drivers/mtd/nand/hifmc100/hifmc100.c-826-        pr_warn("Wait SPI nand ready timeout, status: %#x\n", reg);
+drivers/mtd/nand/hifmc100/hifmc100.c-827-    }
+drivers/mtd/nand/hifmc100/hifmc100.c-828-
+drivers/mtd/nand/hifmc100/hifmc100.c-829-    return 0;
+drivers/mtd/nand/hifmc100/hifmc100.c-830-}
+drivers/mtd/nand/hifmc100/hifmc100.c-831-
+drivers/mtd/nand/hifmc100/hifmc100.c-832-/*****************************************************************************/
+--
+drivers/mtd/nand/hifmc100/hifmc100.h-74-#define SPI_CMD_WRITE_QUAD      0x32    /* 4 IO program only date */
+drivers/mtd/nand/hifmc100/hifmc100.h-75-#define SPI_CMD_WRITE_QUAD_ADDR     0x12    /* 4 IO program date&addr */
+drivers/mtd/nand/hifmc100/hifmc100.h-76-
+drivers/mtd/nand/hifmc100/hifmc100.h-77-#define SPI_CMD_SE_4K           0x20    /* 4KB sector Erase */
+drivers/mtd/nand/hifmc100/hifmc100.h-78-#define SPI_CMD_SE_32K          0x52    /* 32KB sector Erase */
+drivers/mtd/nand/hifmc100/hifmc100.h-79-#define SPI_CMD_SE_64K          0xD8    /* 64KB sector Erase */
+drivers/mtd/nand/hifmc100/hifmc100.h-80-#define SPI_CMD_SE_128K         0xD8    /* 128KB sector Erase */
+drivers/mtd/nand/hifmc100/hifmc100.h-81-#define SPI_CMD_SE_256K         0xD8    /* 256KB sector Erase */
+drivers/mtd/nand/hifmc100/hifmc100.h-82-
+drivers/mtd/nand/hifmc100/hifmc100.h-83-/*****************************************************************************/
+drivers/mtd/nand/hifmc100/hifmc100.h:84:#define SET_READ_STD(_dummy_, _size_, _clk_) \
+drivers/mtd/nand/hifmc100/hifmc100.h:85:    static struct spi_op read_std_##_dummy_##_size_##_clk_ = { \
+drivers/mtd/nand/hifmc100/hifmc100.h-86-    SPI_IF_READ_STD, SPI_CMD_READ_STD, _dummy_, _size_, _clk_ }
+drivers/mtd/nand/hifmc100/hifmc100.h-87-
+drivers/mtd/nand/hifmc100/hifmc100.h-88-#define SET_READ_FAST(_dummy_, _size_, _clk_) \
+drivers/mtd/nand/hifmc100/hifmc100.h:89:    static struct spi_op read_fast_##_dummy_##_size_##_clk_ = { \
+drivers/mtd/nand/hifmc100/hifmc100.h-90-    SPI_IF_READ_FAST, SPI_CMD_READ_FAST, _dummy_, _size_, _clk_ }
+drivers/mtd/nand/hifmc100/hifmc100.h-91-
+drivers/mtd/nand/hifmc100/hifmc100.h-92-#define SET_READ_DUAL(_dummy_, _size_, _clk_) \
+drivers/mtd/nand/hifmc100/hifmc100.h:93:    static struct spi_op read_dual_##_dummy_##_size_##_clk_ = { \
+drivers/mtd/nand/hifmc100/hifmc100.h-94-    SPI_IF_READ_DUAL, SPI_CMD_READ_DUAL, _dummy_, _size_, _clk_ }
+drivers/mtd/nand/hifmc100/hifmc100.h-95-
+drivers/mtd/nand/hifmc100/hifmc100.h-96-#define SET_READ_DUAL_ADDR(_dummy_, _size_, _clk_) \
+drivers/mtd/nand/hifmc100/hifmc100.h:97:    static struct spi_op read_dual_addr_##_dummy_##_size_##_clk_ = { \
+drivers/mtd/nand/hifmc100/hifmc100.h-98-    SPI_IF_READ_DUAL_ADDR, SPI_CMD_READ_DUAL_ADDR, _dummy_, _size_, _clk_ }
+drivers/mtd/nand/hifmc100/hifmc100.h-99-
+drivers/mtd/nand/hifmc100/hifmc100.h-100-#define SET_READ_QUAD(_dummy_, _size_, _clk_) \
+drivers/mtd/nand/hifmc100/hifmc100.h:101:    static struct spi_op read_quad_##_dummy_##_size_##_clk_ = { \
+drivers/mtd/nand/hifmc100/hifmc100.h-102-    SPI_IF_READ_QUAD, SPI_CMD_READ_QUAD, _dummy_, _size_, _clk_ }
+drivers/mtd/nand/hifmc100/hifmc100.h-103-
+drivers/mtd/nand/hifmc100/hifmc100.h-104-#define SET_READ_QUAD_ADDR(_dummy_, _size_, _clk_) \
+drivers/mtd/nand/hifmc100/hifmc100.h:105:    static struct spi_op read_quad_addr_##_dummy_##_size_##_clk_ = { \
+drivers/mtd/nand/hifmc100/hifmc100.h-106-    SPI_IF_READ_QUAD_ADDR, SPI_CMD_READ_QUAD_ADDR, _dummy_, _size_, _clk_ }
+drivers/mtd/nand/hifmc100/hifmc100.h-107-
+drivers/mtd/nand/hifmc100/hifmc100.h-108-/*****************************************************************************/
+drivers/mtd/nand/hifmc100/hifmc100.h-109-#define SET_WRITE_STD(_dummy_, _size_, _clk_) \
+drivers/mtd/nand/hifmc100/hifmc100.h:110:    static struct spi_op write_std_##_dummy_##_size_##_clk_ = { \
+drivers/mtd/nand/hifmc100/hifmc100.h-111-    SPI_IF_WRITE_STD, SPI_CMD_WRITE_STD, _dummy_, _size_, _clk_ }
+drivers/mtd/nand/hifmc100/hifmc100.h-112-
+drivers/mtd/nand/hifmc100/hifmc100.h-113-#define SET_WRITE_DUAL(_dummy_, _size_, _clk_) \
+drivers/mtd/nand/hifmc100/hifmc100.h:114:    static struct spi_op write_dual_##_dummy_##_size_##_clk_ = { \
+drivers/mtd/nand/hifmc100/hifmc100.h-115-    SPI_IF_WRITE_DUAL, SPI_CMD_WRITE_DUAL, _dummy_, _size_, _clk_ }
+drivers/mtd/nand/hifmc100/hifmc100.h-116-
+drivers/mtd/nand/hifmc100/hifmc100.h-117-#define SET_WRITE_DUAL_ADDR(_dummy_, _size_, _clk_) \
+drivers/mtd/nand/hifmc100/hifmc100.h:118:    static struct spi_op write_dual_addr_##_dummy_##_size_##_clk_ = { \
+drivers/mtd/nand/hifmc100/hifmc100.h-119-SPI_IF_WRITE_DUAL_ADDR, SPI_CMD_WRITE_DUAL_ADDR, _dummy_, _size_, _clk_ }
+drivers/mtd/nand/hifmc100/hifmc100.h-120-
+drivers/mtd/nand/hifmc100/hifmc100.h-121-#define SET_WRITE_QUAD(_dummy_, _size_, _clk_) \
+drivers/mtd/nand/hifmc100/hifmc100.h:122:    static struct spi_op write_quad_##_dummy_##_size_##_clk_ = { \
+drivers/mtd/nand/hifmc100/hifmc100.h-123-    SPI_IF_WRITE_QUAD, SPI_CMD_WRITE_QUAD, _dummy_, _size_, _clk_ }
+drivers/mtd/nand/hifmc100/hifmc100.h-124-
+drivers/mtd/nand/hifmc100/hifmc100.h-125-#define SET_WRITE_QUAD_ADDR(_dummy_, _size_, _clk_) \
+drivers/mtd/nand/hifmc100/hifmc100.h:126:    static struct spi_op write_quad_addr_##_dummy_##_size_##_clk_ = { \
+drivers/mtd/nand/hifmc100/hifmc100.h-127-SPI_IF_WRITE_QUAD_ADDR, SPI_CMD_WRITE_QUAD_ADDR, _dummy_, _size_, _clk_ }
+drivers/mtd/nand/hifmc100/hifmc100.h-128-
+drivers/mtd/nand/hifmc100/hifmc100.h-129-/*****************************************************************************/
+drivers/mtd/nand/hifmc100/hifmc100.h-130-#define SET_ERASE_SECTOR_4K(_dummy_, _size_, _clk_) \
+drivers/mtd/nand/hifmc100/hifmc100.h:131:    static struct spi_op erase_sector_4k_##_dummy_##_size_##_clk_ = { \
+drivers/mtd/nand/hifmc100/hifmc100.h-132-    SPI_IF_ERASE_SECTOR_4K, SPI_CMD_SE_4K, _dummy_, _size_, _clk_ }
+drivers/mtd/nand/hifmc100/hifmc100.h-133-
+drivers/mtd/nand/hifmc100/hifmc100.h-134-#define SET_ERASE_SECTOR_32K(_dummy_, _size_, _clk_) \
+drivers/mtd/nand/hifmc100/hifmc100.h:135:    static struct spi_op erase_sector_32k_##_dummy_##_size_##_clk_ = { \
+drivers/mtd/nand/hifmc100/hifmc100.h-136-    SPI_IF_ERASE_SECTOR_32K, SPI_CMD_SE_32K, _dummy_, _size_, _clk_ }
+drivers/mtd/nand/hifmc100/hifmc100.h-137-
+drivers/mtd/nand/hifmc100/hifmc100.h-138-#define SET_ERASE_SECTOR_64K(_dummy_, _size_, _clk_) \
+drivers/mtd/nand/hifmc100/hifmc100.h:139:    static struct spi_op erase_sector_64k_##_dummy_##_size_##_clk_ = { \
+drivers/mtd/nand/hifmc100/hifmc100.h-140-    SPI_IF_ERASE_SECTOR_64K, SPI_CMD_SE_64K, _dummy_, _size_, _clk_ }
+drivers/mtd/nand/hifmc100/hifmc100.h-141-
+drivers/mtd/nand/hifmc100/hifmc100.h-142-#define SET_ERASE_SECTOR_128K(_dummy_, _size_, _clk_) \
+drivers/mtd/nand/hifmc100/hifmc100.h:143:    static struct spi_op erase_sector_128k_##_dummy_##_size_##_clk_ = { \
+drivers/mtd/nand/hifmc100/hifmc100.h-144-    SPI_IF_ERASE_SECTOR_128K, SPI_CMD_SE_128K, _dummy_, _size_, _clk_ }
+drivers/mtd/nand/hifmc100/hifmc100.h-145-
+drivers/mtd/nand/hifmc100/hifmc100.h-146-#define SET_ERASE_SECTOR_256K(_dummy_, _size_, _clk_) \
+drivers/mtd/nand/hifmc100/hifmc100.h:147:    static struct spi_op erase_sector_256k_##_dummy_##_size_##_clk_ = { \
+drivers/mtd/nand/hifmc100/hifmc100.h-148-    SPI_IF_ERASE_SECTOR_256K, SPI_CMD_SE_256K, _dummy_, _size_, _clk_ }
+drivers/mtd/nand/hifmc100/hifmc100.h-149-
+drivers/mtd/nand/hifmc100/hifmc100.h-150-/*****************************************************************************/
+drivers/mtd/nand/hifmc100/hifmc100.h:151:#define READ_STD(_dummy_, _size_, _clk_) read_std_##_dummy_##_size_##_clk_
+drivers/mtd/nand/hifmc100/hifmc100.h:152:#define READ_FAST(_dummy_, _size_, _clk_) read_fast_##_dummy_##_size_##_clk_
+drivers/mtd/nand/hifmc100/hifmc100.h-153-#define READ_DUAL(_dummy_, _size_, _clk_) read_dual_##_dummy_##_size_##_clk_
+drivers/mtd/nand/hifmc100/hifmc100.h-154-#define READ_DUAL_ADDR(_dummy_, _size_, _clk_) \
+drivers/mtd/nand/hifmc100/hifmc100.h-155-        read_dual_addr_##_dummy_##_size_##_clk_
+drivers/mtd/nand/hifmc100/hifmc100.h-156-#define READ_QUAD(_dummy_, _size_, _clk_) read_quad_##_dummy_##_size_##_clk_
+drivers/mtd/nand/hifmc100/hifmc100.h-157-#define READ_QUAD_ADDR(_dummy_, _size_, _clk_) \
+drivers/mtd/nand/hifmc100/hifmc100.h-158-        read_quad_addr_##_dummy_##_size_##_clk_
+drivers/mtd/nand/hifmc100/hifmc100.h-159-
+drivers/mtd/nand/hifmc100/hifmc100.h-160-/*****************************************************************************/
+drivers/mtd/nand/hifmc100/hifmc100.h-161-#define WRITE_STD(_dummy_, _size_, _clk_) write_std_##_dummy_##_size_##_clk_
+drivers/mtd/nand/hifmc100/hifmc100.h-162-#define WRITE_DUAL(_dummy_, _size_, _clk_) write_dual_##_dummy_##_size_##_clk_
+drivers/mtd/nand/hifmc100/hifmc100.h-163-#define WRITE_DUAL_ADDR(_dummy_, _size_, _clk_) \
+drivers/mtd/nand/hifmc100/hifmc100.h-164-        write_dual_addr_##_dummy_##_size_##_clk_
+drivers/mtd/nand/hifmc100/hifmc100.h-165-#define WRITE_QUAD(_dummy_, _size_, _clk_) write_quad_##_dummy_##_size_##_clk_
+drivers/mtd/nand/hifmc100/hifmc100.h-166-#define WRITE_QUAD_ADDR(_dummy_, _size_, _clk_) \
+drivers/mtd/nand/hifmc100/hifmc100.h-167-        write_quad_addr_##_dummy_##_size_##_clk_
+drivers/mtd/nand/hifmc100/hifmc100.h-168-
+drivers/mtd/nand/hifmc100/hifmc100.h-169-/*****************************************************************************/
+drivers/mtd/nand/hifmc100/hifmc100.h-170-#define ERASE_SECTOR_4K(_dummy_, _size_, _clk_) \
+drivers/mtd/nand/hifmc100/hifmc100.h-171-        erase_sector_4k_##_dummy_##_size_##_clk_
+drivers/mtd/nand/hifmc100/hifmc100.h-172-#define ERASE_SECTOR_32K(_dummy_, _size_, _clk_) \
+drivers/mtd/nand/hifmc100/hifmc100.h-173-        erase_sector_32k_##_dummy_##_size_##_clk_
+drivers/mtd/nand/hifmc100/hifmc100.h-174-#define ERASE_SECTOR_64K(_dummy_, _size_, _clk_) \
+drivers/mtd/nand/hifmc100/hifmc100.h-175-        erase_sector_64k_##_dummy_##_size_##_clk_
+drivers/mtd/nand/hifmc100/hifmc100.h-176-#define ERASE_SECTOR_128K(_dummy_, _size_, _clk_) \
+drivers/mtd/nand/hifmc100/hifmc100.h-177-        erase_sector_128k_##_dummy_##_size_##_clk_
+--
+drivers/mtd/nand/hifmc100/hifmc100.h-234-#define OP_STYPE_READ           0x01
+drivers/mtd/nand/hifmc100/hifmc100.h-235-#define OP_STYPE_WRITE          0x02
+drivers/mtd/nand/hifmc100/hifmc100.h-236-#define OP_STYPE_ERASE          0x04
+drivers/mtd/nand/hifmc100/hifmc100.h-237-#define CLK_FMC_TO_CRG_MHZ(_clk)    ((_clk) * 2000000)
+drivers/mtd/nand/hifmc100/hifmc100.h-238-
+drivers/mtd/nand/hifmc100/hifmc100.h-239-/*****************************************************************************/
+drivers/mtd/nand/hifmc100/hifmc100.h-240-#define MAX_SPI_OP          8
+drivers/mtd/nand/hifmc100/hifmc100.h-241-
+drivers/mtd/nand/hifmc100/hifmc100.h-242-/*****************************************************************************/
+drivers/mtd/nand/hifmc100/hifmc100.h-243-/* SPI general operation parameter */
+drivers/mtd/nand/hifmc100/hifmc100.h:244:struct spi_op {
+drivers/mtd/nand/hifmc100/hifmc100.h-245-    unsigned char iftype;
+drivers/mtd/nand/hifmc100/hifmc100.h-246-    unsigned char cmd;
+drivers/mtd/nand/hifmc100/hifmc100.h-247-    unsigned char dummy;
+drivers/mtd/nand/hifmc100/hifmc100.h-248-    unsigned int size;
+drivers/mtd/nand/hifmc100/hifmc100.h-249-    unsigned int clock;
+drivers/mtd/nand/hifmc100/hifmc100.h-250-};
+drivers/mtd/nand/hifmc100/hifmc100.h-251-
+drivers/mtd/nand/hifmc100/hifmc100.h-252-struct spi_drv;
+drivers/mtd/nand/hifmc100/hifmc100.h-253-
+drivers/mtd/nand/hifmc100/hifmc100.h-254-/* SPI interface all operation */
+drivers/mtd/nand/hifmc100/hifmc100.h-255-struct hifmc_spi {
+drivers/mtd/nand/hifmc100/hifmc100.h-256-    char *name;
+drivers/mtd/nand/hifmc100/hifmc100.h-257-    int chipselect;
+drivers/mtd/nand/hifmc100/hifmc100.h-258-    unsigned long long chipsize;
+drivers/mtd/nand/hifmc100/hifmc100.h-259-    unsigned int erasesize;
+drivers/mtd/nand/hifmc100/hifmc100.h-260-#define SPI_NOR_3BYTE_ADDR_LEN  3   /* address len 3Bytes */
+drivers/mtd/nand/hifmc100/hifmc100.h-261-#define SPI_NOR_4BYTE_ADDR_LEN  4   /* address len 4Bytes for 32MB */
+drivers/mtd/nand/hifmc100/hifmc100.h-262-    unsigned int addrcycle;
+drivers/mtd/nand/hifmc100/hifmc100.h-263-
+drivers/mtd/nand/hifmc100/hifmc100.h:264:    struct spi_op read[1];
+drivers/mtd/nand/hifmc100/hifmc100.h:265:    struct spi_op write[1];
+drivers/mtd/nand/hifmc100/hifmc100.h:266:    struct spi_op erase[MAX_SPI_OP];
+drivers/mtd/nand/hifmc100/hifmc100.h-267-
+drivers/mtd/nand/hifmc100/hifmc100.h-268-    void *host;
+drivers/mtd/nand/hifmc100/hifmc100.h-269-
+drivers/mtd/nand/hifmc100/hifmc100.h-270-    struct spi_drv *driver;
+drivers/mtd/nand/hifmc100/hifmc100.h-271-};
+drivers/mtd/nand/hifmc100/hifmc100.h-272-
+drivers/mtd/nand/hifmc100/hifmc100.h-273-/* SPI interface special operation function hook */
+drivers/mtd/nand/hifmc100/hifmc100.h-274-struct spi_drv {
+drivers/mtd/nand/hifmc100/hifmc100.h-275-    int (*wait_ready)(struct hifmc_spi *spi);
+drivers/mtd/nand/hifmc100/hifmc100.h-276-    int (*write_enable)(struct hifmc_spi *spi);
+drivers/mtd/nand/hifmc100/hifmc100.h-277-    int (*qe_enable)(struct hifmc_spi *spi);
+drivers/mtd/nand/hifmc100/hifmc100.h-278-    int (*bus_prepare)(struct hifmc_spi *spi, int op);
+drivers/mtd/nand/hifmc100/hifmc100.h-279-    int (*entry_4addr)(struct hifmc_spi *spi, int en);
+drivers/mtd/nand/hifmc100/hifmc100.h-280-};
+drivers/mtd/nand/hifmc100/hifmc100.h-281-
+drivers/mtd/nand/hifmc100/hifmc100.h-282-struct spi_nand_info {
+drivers/mtd/nand/hifmc100/hifmc100.h-283-    char *name;
+drivers/mtd/nand/hifmc100/hifmc100.h-284-    unsigned char id[MAX_SPI_NAND_ID_LEN];
+drivers/mtd/nand/hifmc100/hifmc100.h-285-    unsigned char id_len;
+drivers/mtd/nand/hifmc100/hifmc100.h-286-    unsigned long long chipsize;
+drivers/mtd/nand/hifmc100/hifmc100.h-287-    unsigned int erasesize;
+drivers/mtd/nand/hifmc100/hifmc100.h-288-    unsigned int pagesize;
+drivers/mtd/nand/hifmc100/hifmc100.h-289-    unsigned int oobsize;
+drivers/mtd/nand/hifmc100/hifmc100.h-290-#define BBP_LAST_PAGE       0x01
+drivers/mtd/nand/hifmc100/hifmc100.h-291-#define BBP_FIRST_PAGE      0x02
+drivers/mtd/nand/hifmc100/hifmc100.h-292-    unsigned int badblock_pos;
+drivers/mtd/nand/hifmc100/hifmc100.h:293:    struct spi_op *read[MAX_SPI_OP];
+drivers/mtd/nand/hifmc100/hifmc100.h:294:    struct spi_op *write[MAX_SPI_OP];
+drivers/mtd/nand/hifmc100/hifmc100.h:295:    struct spi_op *erase[MAX_SPI_OP];
+drivers/mtd/nand/hifmc100/hifmc100.h-296-    struct spi_drv *driver;
+drivers/mtd/nand/hifmc100/hifmc100.h-297-};
+drivers/mtd/nand/hifmc100/hifmc100.h-298-
+drivers/mtd/nand/hifmc100/hifmc100.h-299-/*****************************************************************************/
+drivers/mtd/nand/hifmc100/hifmc100.h-300-extern u_char spi_nand_feature_op(struct hifmc_spi *spi, u_char op, u_char addr,
+drivers/mtd/nand/hifmc100/hifmc100.h-301-                                  u_char val);
+drivers/mtd/nand/hifmc100/hifmc100.h-302-
+drivers/mtd/nand/hifmc100/hifmc100.h-303-/*****************************************************************************/
+drivers/mtd/nand/hifmc100/hifmc100.h-304-struct hifmc_host {
+drivers/mtd/nand/hifmc100/hifmc100.h-305-    struct mtd_info *mtd;
+drivers/mtd/nand/hifmc100/hifmc100.h-306-    struct nand_chip *chip;
+drivers/mtd/nand/hifmc100/hifmc100.h-307-    struct hifmc_spi spi[CONFIG_SPI_NAND_MAX_CHIP_NUM];
+drivers/mtd/nand/hifmc100/hifmc100.h:308:    struct hifmc_cmd_op cmd_op;
+drivers/mtd/nand/hifmc100/hifmc100.h-309-
+drivers/mtd/nand/hifmc100/hifmc100.h-310-    void __iomem *iobase;
+drivers/mtd/nand/hifmc100/hifmc100.h-311-    void __iomem *regbase;
+drivers/mtd/nand/hifmc100/hifmc100.h-312-    struct clk *clk;
+drivers/mtd/nand/hifmc100/hifmc100.h-313-    u32 clkrate;
+drivers/mtd/nand/hifmc100/hifmc100.h-314-
+drivers/mtd/nand/hifmc100/hifmc100.h-315-    unsigned int fmc_cfg;
+drivers/mtd/nand/hifmc100/hifmc100.h-316-    unsigned int fmc_cfg_ecc0;
+drivers/mtd/nand/hifmc100/hifmc100.h-317-
+drivers/mtd/nand/hifmc100/hifmc100.h-318-    unsigned int offset;
+drivers/mtd/nand/hifmc100/hifmc100.h-319-
+drivers/mtd/nand/hifmc100/hifmc100.h-320-    struct device *dev;
+drivers/mtd/nand/hifmc100/hifmc100.h-321-    struct mutex *lock;
+drivers/mtd/nand/hifmc100/hifmc100.h-322-
+drivers/mtd/nand/hifmc100/hifmc100.h-323-    /* This is maybe an un-aligment address, only for malloc or free */
+drivers/mtd/nand/hifmc100/hifmc100.h-324-    char *buforg;
+drivers/mtd/nand/hifmc100/hifmc100.h-325-    char *buffer;
+drivers/mtd/nand/hifmc100/hifmc100.h-326-
+drivers/mtd/nand/hifmc100/hifmc100.h-327-#ifdef CONFIG_64BIT
+drivers/mtd/nand/hifmc100/hifmc100.h-328-    unsigned long long dma_buffer;
+drivers/mtd/nand/hifmc100/hifmc100.h-329-    unsigned long long dma_oob;
+drivers/mtd/nand/hifmc100/hifmc100.h-330-#else
+drivers/mtd/nand/hifmc100/hifmc100.h-331-    unsigned int dma_buffer;
+drivers/mtd/nand/hifmc100/hifmc100.h-332-    unsigned int dma_oob;
+drivers/mtd/nand/hifmc100/hifmc100.h-333-#endif
+--
+drivers/mtd/nand/hifmc100/hifmc100.h-372-};
+drivers/mtd/nand/hifmc100/hifmc100.h-373-
+drivers/mtd/nand/hifmc100/hifmc100.h-374-/*****************************************************************************/
+drivers/mtd/nand/hifmc100/hifmc100.h-375-void hifmc100_ecc0_switch(struct hifmc_host *host, unsigned char op);
+drivers/mtd/nand/hifmc100/hifmc100.h-376-
+drivers/mtd/nand/hifmc100/hifmc100.h-377-int hifmc100_spi_nand_init(struct nand_chip *chip);
+drivers/mtd/nand/hifmc100/hifmc100.h-378-
+drivers/mtd/nand/hifmc100/hifmc100.h-379-/*****************************************************************************/
+drivers/mtd/nand/hifmc100/hifmc100.h-380-extern void hifmc_spi_nand_ids_register(void);
+drivers/mtd/nand/hifmc100/hifmc100.h-381-
+drivers/mtd/nand/hifmc100/hifmc100.h:382:extern void hifmc_set_nand_system_clock(struct spi_op *op, int clk_en);
+drivers/mtd/nand/hifmc100/hifmc100.h-383-
+drivers/mtd/nand/hifmc100/hifmc100.h-384-/*****************************************************************************/
+drivers/mtd/nand/hifmc100/hifmc100.h-385-#ifdef CONFIG_PM
+drivers/mtd/nand/hifmc100/hifmc100.h-386-int hifmc100_suspend(struct platform_device *pltdev, pm_message_t state);
+drivers/mtd/nand/hifmc100/hifmc100.h-387-int hifmc100_resume(struct platform_device *pltdev);
+drivers/mtd/nand/hifmc100/hifmc100.h-388-void hifmc100_spi_nand_config(struct hifmc_host *host);
+drivers/mtd/nand/hifmc100/hifmc100.h-389-#endif
+drivers/mtd/nand/hifmc100/hifmc100.h-390-
+drivers/mtd/nand/hifmc100/hifmc100.h-391-#endif /* End of __HIFMC100_H__ */
+--
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-77-    hifmc_writel(host, FMC_OP, reg);
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-78-    FMC_PR(DMA_DB, "\t\t |-Set OP[%#x]%#x\n", FMC_OP, reg);
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-79-
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-80-    reg = FMC_DMA_AHB_CTRL_DMA_PP_EN
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-81-          | FMC_DMA_AHB_CTRL_BURST16_EN
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-82-          | FMC_DMA_AHB_CTRL_BURST8_EN
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-83-          | FMC_DMA_AHB_CTRL_BURST4_EN;
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-84-    hifmc_writel(host, FMC_DMA_AHB_CTRL, reg);
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-85-    FMC_PR(DMA_DB, "\t\t |-Set AHBCTRL[%#x]%#x\n", FMC_DMA_AHB_CTRL, reg);
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-86-
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c:87:    reg = OP_CFG_FM_CS(host->cmd_op.cs)
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c:88:          | OP_CFG_ADDR_NUM(host->addr_cycle);
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-89-    hifmc_writel(host, FMC_OP_CFG, reg);
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-90-    FMC_PR(DMA_DB, "\t\t |-Set OP_CFG[%#x]%#x\n", FMC_OP_CFG, reg);
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-91-
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-92-    reg = OP_CTRL_DMA_OP_READY;
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-93-    if (todev) {
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-94-        reg |= OP_CTRL_RW_OP(todev);
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-95-    }
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-96-    hifmc_writel(host, FMC_OP_CTRL, reg);
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-97-    FMC_PR(DMA_DB, "\t\t |-Set OP_CTRL[%#x]%#x\n", FMC_OP_CTRL, reg);
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-98-
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-99-    FMC_DMA_WAIT_CPU_FINISH(host);
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-100-
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-101-    FMC_PR(DMA_DB, "\t\t *-End %s page dma transfer\n", op);
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-102-
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-103-    return;
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-104-}
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-105-
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-106-/*****************************************************************************/
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-107-static void hifmc100_send_cmd_write(struct hifmc_host *host)
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-108-{
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-109-    unsigned int reg;
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-110-
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-111-    FMC_PR(WR_DBG, "\t|*-Start send page programme cmd\n");
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-112-
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-113-    if (*host->bbm != 0xFF && *host->bbm != 0x00) {
+--
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-198-    host->enable_ecc_randomizer(host, DISABLE, DISABLE);
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-199-
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-200-    reg = host->addr_value[0];
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-201-    hifmc_writel(host, FMC_ADDRL, reg);
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-202-    FMC_PR(ER_DBG, "\t |-Set ADDRL[%#x]%#x\n", FMC_ADDRL, reg);
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-203-
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-204-    reg = FMC_CMD_CMD2(NAND_CMD_ERASE2) | FMC_CMD_CMD1(NAND_CMD_ERASE1);
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-205-    hifmc_writel(host, FMC_CMD, reg);
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-206-    FMC_PR(ER_DBG, "\t |-Set CMD[%#x]%#x\n", FMC_CMD, reg);
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-207-
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c:208:    reg = OP_CFG_FM_CS(host->cmd_op.cs)
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c:209:          | OP_CFG_ADDR_NUM(host->addr_cycle);
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-210-    hifmc_writel(host, FMC_OP_CFG, reg);
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-211-    FMC_PR(ER_DBG, "\t |-Set OP_CFG[%#x]%#x\n", FMC_OP_CFG, reg);
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-212-
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-213-    /* need to config WAIT_READY_EN */
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-214-    reg = FMC_OP_WAIT_READY_EN
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-215-          | FMC_OP_CMD1_EN
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-216-          | FMC_OP_CMD2_EN
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-217-          | FMC_OP_ADDR_EN
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-218-          | FMC_OP_REG_OP_START;
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-219-    hifmc_writel(host, FMC_OP, reg);
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-220-    FMC_PR(ER_DBG, "\t |-Set OP[%#x]%#x\n", FMC_OP, reg);
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-221-
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-222-    FMC_CMD_WAIT_CPU_FINISH(host);
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-223-
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-224-    FMC_PR(ER_DBG, "\t |*-End send cmd erase\n");
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-225-}
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-226-
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-227-/*****************************************************************************/
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-228-static void hifmc100_ecc_randomizer(struct hifmc_host *host, int ecc_en,
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-229-                                    int randomizer_en)
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-230-{
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-231-    unsigned int old_reg, reg, change = 0;
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-232-    char *ecc_op = ecc_en ? "Quit" : "Enter";
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-233-    char *rand_op = randomizer_en ? "Enable" : "Disable";
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-234-
+--
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-268-    }
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-269-}
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-270-
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-271-/*****************************************************************************/
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-272-static void hifmc100_send_cmd_status(struct hifmc_host *host)
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-273-{
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-274-    unsigned int regval;
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-275-
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-276-    host->enable_ecc_randomizer(host, DISABLE, DISABLE);
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-277-
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c:278:    regval = OP_CFG_FM_CS(host->cmd_op.cs);
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-279-    hifmc_writel(host, FMC_OP_CFG, regval);
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-280-
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-281-    regval = FMC_OP_READ_STATUS_EN | FMC_OP_REG_OP_START;
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-282-    hifmc_writel(host, FMC_OP, regval);
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-283-
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-284-    FMC_CMD_WAIT_CPU_FINISH(host);
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-285-}
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-286-
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-287-/*****************************************************************************/
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-288-static void hifmc100_send_cmd_readid(struct hifmc_host *host)
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-289-{
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-290-    unsigned int reg;
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-291-
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-292-    FMC_PR(BT_DBG, "\t *-Start read nand flash ID\n");
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-293-
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-294-    host->enable_ecc_randomizer(host, DISABLE, DISABLE);
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-295-
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-296-    reg = FMC_DATA_NUM_CNT(host->cmd_op.data_no);
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-297-    hifmc_writel(host, FMC_DATA_NUM, reg);
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-298-    FMC_PR(BT_DBG, "\t |-Set DATA_NUM[%#x]%#x\n", FMC_DATA_NUM, reg);
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-299-
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-300-    reg = FMC_CMD_CMD1(NAND_CMD_READID);
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-301-    hifmc_writel(host, FMC_CMD, reg);
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-302-    FMC_PR(BT_DBG, "\t |-Set CMD[%#x]%#x\n", FMC_CMD, reg);
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-303-
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-304-    reg = 0;
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-305-    hifmc_writel(host, FMC_ADDRL, reg);
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-306-    FMC_PR(BT_DBG, "\t |-Set ADDRL[%#x]%#x\n", FMC_ADDRL, reg);
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-307-
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c:308:    reg = OP_CFG_FM_CS(host->cmd_op.cs)
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c:309:          | OP_CFG_ADDR_NUM(READ_ID_ADDR_NUM);
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-310-    hifmc_writel(host, FMC_OP_CFG, reg);
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-311-    FMC_PR(BT_DBG, "\t |-Set OP_CFG[%#x]%#x\n", FMC_OP_CFG, reg);
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-312-
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-313-    reg = FMC_OP_CMD1_EN
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-314-          | FMC_OP_ADDR_EN
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-315-          | FMC_OP_READ_DATA_EN
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-316-          | FMC_OP_REG_OP_START;
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-317-    hifmc_writel(host, FMC_OP, reg);
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-318-    FMC_PR(BT_DBG, "\t |-Set OP[%#x]%#x\n", FMC_OP, reg);
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-319-
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-320-    host->addr_cycle = 0x0;
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-321-
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-322-    FMC_CMD_WAIT_CPU_FINISH(host);
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-323-
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-324-    FMC_PR(BT_DBG, "\t *-End read nand flash ID\n");
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-325-}
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-326-
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-327-/*****************************************************************************/
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-328-static void hifmc100_send_cmd_reset(struct hifmc_host *host)
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-329-{
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-330-    unsigned int reg;
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-331-
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-332-    FMC_PR(BT_DBG, "\t *-Start reset nand flash\n");
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-333-
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-334-    reg = FMC_CMD_CMD1(NAND_CMD_RESET);
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-335-    hifmc_writel(host, FMC_CMD, reg);
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-336-    FMC_PR(BT_DBG, "\t |-Set CMD[%#x]%#x\n", FMC_CMD, reg);
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-337-
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c:338:    reg = OP_CFG_FM_CS(host->cmd_op.cs);
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-339-    hifmc_writel(host, FMC_OP_CFG, reg);
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-340-    FMC_PR(BT_DBG, "\t |-Set OP_CFG[%#x]%#x\n", FMC_OP_CFG, reg);
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-341-
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-342-    reg = FMC_OP_CMD1_EN
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-343-          | FMC_OP_WAIT_READY_EN
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-344-          | FMC_OP_REG_OP_START;
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-345-    hifmc_writel(host, FMC_OP, reg);
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-346-    FMC_PR(BT_DBG, "\t |-Set OP[%#x]%#x\n", FMC_OP, reg);
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-347-
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-348-    FMC_CMD_WAIT_CPU_FINISH(host);
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-349-
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-350-    FMC_PR(BT_DBG, "\t *-End reset nand flash\n");
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-351-}
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-352-
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-353-/*****************************************************************************/
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-354-static unsigned char hifmc100_read_byte(struct mtd_info *mtd)
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-355-{
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-356-    unsigned char value = 0;
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-357-    struct nand_chip *chip = mtd_to_nand(mtd);
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-358-    struct hifmc_host *host = chip->priv;
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-359-
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-360-    if (host->cmd_op.l_cmd == NAND_CMD_READID) {
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-361-        value = hifmc_readb((void __iomem *)(chip->IO_ADDR_R + host->offset));
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-362-        host->offset++;
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-363-        if (host->cmd_op.data_no == host->offset) {
+--
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.h-67-#define HIFMC100_ADDR_CYCLE_MASK        0x4
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.h-68-
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.h-69-#define NAND_EDO_MODE_SHIFT            9
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.h-70-#define NAND_EDO_MODE_MASK             (1<<NAND_EDO_MODE_SHIFT)
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.h-71-#define SET_NAND_EDO_MODE_EN(reg)      ((reg) | NAND_EDO_MODE_MASK)
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.h-72-/*****************************************************************************/
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.h-73-struct hifmc_host {
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.h-74-    struct nand_chip *chip;
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.h-75-    struct mtd_info  *mtd;
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.h-76-
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.h:77:    struct hifmc_cmd_op cmd_op;
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.h-78-    void __iomem *regbase;
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.h-79-    void __iomem *iobase;
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.h-80-
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.h-81-    /* Controller config option nand flash */
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.h-82-    unsigned int nand_cfg;
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.h-83-    unsigned int nand_cfg_ecc0;
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.h-84-
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.h-85-    unsigned int offset;
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.h-86-
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.h-87-    struct device *dev;
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.h-88-
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.h-89-    /* This is maybe an un-aligment address, only for malloc or free */
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.h-90-    char *buforg;
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.h-91-    char *buffer;
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.h-92-
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.h-93-#ifdef CONFIG_64BIT
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.h-94-    unsigned long long dma_buffer;
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.h-95-    unsigned long long dma_oob;
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.h-96-#else
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.h-97-    unsigned int dma_buffer;
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.h-98-    unsigned int dma_oob;
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.h-99-#endif
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.h-100-    unsigned int dma_len;
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.h-101-
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.h-102-    unsigned int addr_cycle;
+--
+include/linux/mfd/hisi_fmc.h-176-
+include/linux/mfd/hisi_fmc.h-177-#define FMC_INT_CLR_ALL             0xff
+include/linux/mfd/hisi_fmc.h-178-
+include/linux/mfd/hisi_fmc.h-179-/*****************************************************************************/
+include/linux/mfd/hisi_fmc.h-180-#define FMC_CMD                 0x24
+include/linux/mfd/hisi_fmc.h-181-#define FMC_CMD_CMD2(_cmd)          (((_cmd) & 0xff) << 8)
+include/linux/mfd/hisi_fmc.h-182-#define FMC_CMD_CMD1(_cmd)          ((_cmd) & 0xff)
+include/linux/mfd/hisi_fmc.h-183-
+include/linux/mfd/hisi_fmc.h-184-/*****************************************************************************/
+include/linux/mfd/hisi_fmc.h-185-#define FMC_ADDRH               0x28
+include/linux/mfd/hisi_fmc.h:186:#define FMC_ADDRH_SET(_addr)            ((_addr) & 0xff)
+include/linux/mfd/hisi_fmc.h-187-
+include/linux/mfd/hisi_fmc.h-188-/*****************************************************************************/
+include/linux/mfd/hisi_fmc.h-189-#define FMC_ADDRL               0x2c
+include/linux/mfd/hisi_fmc.h-190-#define FMC_ADDRL_BLOCK_MASK(_page)     ((_page) & 0xffffffc0)
+include/linux/mfd/hisi_fmc.h-191-#define FMC_ADDRL_BLOCK_H_MASK(_page)       (((_page) & 0xffff) << 16)
+include/linux/mfd/hisi_fmc.h-192-#define FMC_ADDRL_BLOCK_L_MASK(_page)       ((_page) & 0xffc0)
+include/linux/mfd/hisi_fmc.h-193-
+include/linux/mfd/hisi_fmc.h-194-#define READ_ID_ADDR                0x00
+include/linux/mfd/hisi_fmc.h-195-#define PROTECT_ADDR                0xa0
+include/linux/mfd/hisi_fmc.h-196-#define FEATURE_ADDR                0xb0
+include/linux/mfd/hisi_fmc.h-197-#define STATUS_ADDR                 0xc0
+include/linux/mfd/hisi_fmc.h-198-/*****************************************************************************/
+include/linux/mfd/hisi_fmc.h-199-#define FMC_OP_CFG              0x30
+include/linux/mfd/hisi_fmc.h:200:#define OP_CFG_FM_CS(_cs)           ((_cs) << 11)
+include/linux/mfd/hisi_fmc.h-201-#define OP_CFG_FORCE_CS_EN(_en)         ((_en) << 10)
+include/linux/mfd/hisi_fmc.h-202-#define OP_CFG_MEM_IF_TYPE(_type)       (((_type) & 0x7) << 7)
+include/linux/mfd/hisi_fmc.h:203:#define OP_CFG_ADDR_NUM(_addr)          (((_addr) & 0x7) << 4)
+include/linux/mfd/hisi_fmc.h-204-#define OP_CFG_DUMMY_NUM(_dummy)        ((_dummy) & 0xf)
+include/linux/mfd/hisi_fmc.h-205-#define OP_CFG_OEN_EN               (0x1 << 13)
+include/linux/mfd/hisi_fmc.h-206-
+include/linux/mfd/hisi_fmc.h-207-#define IF_TYPE_SHIFT               7
+include/linux/mfd/hisi_fmc.h-208-#define IF_TYPE_MASK                (0x7 << IF_TYPE_SHIFT)
+include/linux/mfd/hisi_fmc.h-209-
+include/linux/mfd/hisi_fmc.h-210-#define READ_ID_ADDR_NUM            1
+include/linux/mfd/hisi_fmc.h-211-#define FEATURES_OP_ADDR_NUM            1
+include/linux/mfd/hisi_fmc.h-212-#define STD_OP_ADDR_NUM             3
+include/linux/mfd/hisi_fmc.h-213-
+include/linux/mfd/hisi_fmc.h-214-/*****************************************************************************/
+include/linux/mfd/hisi_fmc.h-215-#define FMC_SPI_OP_ADDR             0x34
+include/linux/mfd/hisi_fmc.h-216-
+include/linux/mfd/hisi_fmc.h-217-/*****************************************************************************/
+include/linux/mfd/hisi_fmc.h-218-#define FMC_DATA_NUM                0x38
+include/linux/mfd/hisi_fmc.h-219-#define FMC_DATA_NUM_CNT(_n)            ((_n) & 0x3fff)
+include/linux/mfd/hisi_fmc.h-220-
+include/linux/mfd/hisi_fmc.h-221-#define SPI_NOR_SR_LEN              1 /* Status Register length */
+include/linux/mfd/hisi_fmc.h-222-#define SPI_NOR_CR_LEN              1 /* Config Register length */
+include/linux/mfd/hisi_fmc.h-223-#define FEATURES_DATA_LEN           1
+include/linux/mfd/hisi_fmc.h-224-#define READ_OOB_BB_LEN             1
+include/linux/mfd/hisi_fmc.h-225-
+include/linux/mfd/hisi_fmc.h-226-#define PROTECT_BRWD_MASK           BIT(7)
+include/linux/mfd/hisi_fmc.h-227-#define PROTECT_BP3_MASK            BIT(6)
+include/linux/mfd/hisi_fmc.h-228-#define PROTECT_BP2_MASK            BIT(5)
+--
+include/linux/mfd/hisi_fmc.h-299-/*****************************************************************************/
+include/linux/mfd/hisi_fmc.h-300-#define FMC_DMA_BLK_SADDR           0x60
+include/linux/mfd/hisi_fmc.h-301-#define FMC_DMA_BLK_SADDR_SET(_addr)        ((_addr) & 0xffffff)
+include/linux/mfd/hisi_fmc.h-302-
+include/linux/mfd/hisi_fmc.h-303-/*****************************************************************************/
+include/linux/mfd/hisi_fmc.h-304-#define FMC_DMA_BLK_LEN             0x64
+include/linux/mfd/hisi_fmc.h-305-#define FMC_DMA_BLK_LEN_SET(_len)       ((_len) & 0xffff)
+include/linux/mfd/hisi_fmc.h-306-
+include/linux/mfd/hisi_fmc.h-307-/*****************************************************************************/
+include/linux/mfd/hisi_fmc.h-308-#define FMC_OP_CTRL             0x68
+include/linux/mfd/hisi_fmc.h:309:#define OP_CTRL_RD_OPCODE(code)     (((code) & 0xff) << 16)
+include/linux/mfd/hisi_fmc.h-310-#define OP_CTRL_WR_OPCODE(code)     (((code) & 0xff) << 8)
+include/linux/mfd/hisi_fmc.h:311:#define OP_CTRL_RD_OP_SEL(_op)              (((_op) & 0x3) << 4)
+include/linux/mfd/hisi_fmc.h-312-#define OP_CTRL_DMA_OP(_type)           ((_type) << 2)
+include/linux/mfd/hisi_fmc.h-313-#define OP_CTRL_RW_OP(op)       ((op) << 1)
+include/linux/mfd/hisi_fmc.h-314-#define OP_CTRL_DMA_OP_READY        BIT(0)
+include/linux/mfd/hisi_fmc.h-315-
+include/linux/mfd/hisi_fmc.h-316-#define RD_OP_READ_ALL_PAGE         0x0
+include/linux/mfd/hisi_fmc.h-317-#define RD_OP_READ_OOB              0x1
+include/linux/mfd/hisi_fmc.h-318-#define RD_OP_BLOCK_READ            0x2
+include/linux/mfd/hisi_fmc.h-319-
+include/linux/mfd/hisi_fmc.h-320-#define RD_OP_SHIFT             4
+include/linux/mfd/hisi_fmc.h-321-#define RD_OP_MASK              (0x3 << RD_OP_SHIFT)
+include/linux/mfd/hisi_fmc.h-322-
+include/linux/mfd/hisi_fmc.h-323-#define OP_TYPE_DMA             0x0
+include/linux/mfd/hisi_fmc.h-324-#define OP_TYPE_REG             0x1
+include/linux/mfd/hisi_fmc.h-325-
+include/linux/mfd/hisi_fmc.h-326-#define FMC_OP_READ             0x0
+include/linux/mfd/hisi_fmc.h-327-#define FMC_OP_WRITE                0x1
+include/linux/mfd/hisi_fmc.h-328-#define RW_OP_READ              0x0
+include/linux/mfd/hisi_fmc.h-329-#define RW_OP_WRITE             0x1
+include/linux/mfd/hisi_fmc.h-330-
+include/linux/mfd/hisi_fmc.h-331-/*****************************************************************************/
+include/linux/mfd/hisi_fmc.h-332-#define FMC_OP_PARA             0x70
+include/linux/mfd/hisi_fmc.h-333-#define FMC_OP_PARA_RD_OOB_ONLY         BIT(1)
+include/linux/mfd/hisi_fmc.h-334-
+include/linux/mfd/hisi_fmc.h-335-/*****************************************************************************/
+include/linux/mfd/hisi_fmc.h-336-#define FMC_BOOT_SET                0x74
+--
+include/linux/mfd/hisi_fmc.h-498-struct hisi_fmc {
+include/linux/mfd/hisi_fmc.h-499-    void __iomem *regbase;
+include/linux/mfd/hisi_fmc.h-500-    void __iomem *iobase;
+include/linux/mfd/hisi_fmc.h-501-    struct clk *clk;
+include/linux/mfd/hisi_fmc.h-502-    struct mutex lock;
+include/linux/mfd/hisi_fmc.h-503-    void *buffer;
+include/linux/mfd/hisi_fmc.h-504-    dma_addr_t dma_buffer;
+include/linux/mfd/hisi_fmc.h-505-    unsigned int dma_len;
+include/linux/mfd/hisi_fmc.h-506-};
+include/linux/mfd/hisi_fmc.h-507-
+include/linux/mfd/hisi_fmc.h:508:struct hifmc_cmd_op {
+include/linux/mfd/hisi_fmc.h-509-    unsigned char cs;
+include/linux/mfd/hisi_fmc.h-510-    unsigned char cmd;
+include/linux/mfd/hisi_fmc.h-511-    unsigned char l_cmd;
+include/linux/mfd/hisi_fmc.h-512-    unsigned char addr_h;
+include/linux/mfd/hisi_fmc.h-513-    unsigned int addr_l;
+include/linux/mfd/hisi_fmc.h-514-    unsigned int data_no;
+include/linux/mfd/hisi_fmc.h-515-    unsigned short option;
+include/linux/mfd/hisi_fmc.h-516-    unsigned short op_cfg;
+include/linux/mfd/hisi_fmc.h-517-};
+include/linux/mfd/hisi_fmc.h-518-
+include/linux/mfd/hisi_fmc.h-519-extern struct mutex fmc_switch_mutex;
+include/linux/mfd/hisi_fmc.h-520-
+include/linux/mfd/hisi_fmc.h-521-#endif /*__HISI_FMC_H*/
+--- SEND_CMD_READ ---
+/*
+ * The Flash Memory Controller v100 Device Driver for hisilicon
+ *
+ * Copyright (c) 2016 HiSilicon Technologies Co., Ltd.
+ *
+ * This program is free software; you can redistribute  it and/or modify it
+ * under  the terms of  the GNU General  Public License as published by the
+ * Free Software Foundation;  either version 2 of the  License, or (at your
+ * option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ */
+
+userubuntu@NSZDR2414:~/openipc-linux$ cd ~/openipc-linux && grep -Rn -A35 -B15 'addr_value\[0\].*=' drivers/mtd/nand/hifmc100_nand drivers/mtd/nand/hifmc100 && printf '\n--- NAND CFG / ADDR CYCLE ---\n' && grep -Rn -A20 -B10 'nand_cfg\|addr_cycle' drivers/mtd/nand/hifmc100_nand | head -250
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-132-
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-133-    *host->epm = 0x0000;
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-134-
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-135-    hifmc100_dma_transfer(host, RW_OP_WRITE);
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-136-
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-137-    FMC_PR(WR_DBG, "\t|*-End send page read cmd\n");
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-138-}
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-139-
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-140-/*****************************************************************************/
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-141-static void hifmc100_send_cmd_read(struct hifmc_host *host)
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-142-{
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-143-    unsigned int reg;
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-144-
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-145-    FMC_PR(RD_DBG, "\t*-Start send page read cmd\n");
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-146-
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c:147:    if ((host->addr_value[0] == host->cache_addr_value[0])
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-148-            && (host->addr_value[1] == host->cache_addr_value[1])) {
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-149-        FMC_PR(RD_DBG, "\t*-Cache hit! addr1[%#x], addr0[%#x]\n",
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-150-               host->addr_value[1], host->addr_value[0]);
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-151-        return;
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-152-    }
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-153-
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-154-    host->page_status = 0;
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-155-
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-156-    host->enable_ecc_randomizer(host, ENABLE, ENABLE);
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-157-
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-158-    reg = FMC_INT_CLR_ALL;
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-159-    hifmc_writel(host, FMC_INT_CLR, reg);
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-160-    FMC_PR(RD_DBG, "\t|-Set INT_CLR[%#x]%#x\n", FMC_INT_CLR, reg);
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-161-
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-162-    reg = host->nand_cfg;
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-163-    hifmc_writel(host, FMC_CFG, reg);
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-164-    FMC_PR(RD_DBG, "\t|-Set CFG[%#x]%#x\n", FMC_CFG, reg);
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-165-
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-166-    reg = host->addr_value[1];
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-167-    hifmc_writel(host, FMC_ADDRH, reg);
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-168-    FMC_PR(RD_DBG, "\t|-Set ADDRH[%#x]%#x\n", FMC_ADDRH, reg);
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-169-
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-170-    reg = host->addr_value[0] & 0xffff0000;
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-171-    hifmc_writel(host, FMC_ADDRL, reg);
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-172-    FMC_PR(RD_DBG, "\t|-Set ADDRL[%#x]%#x\n", FMC_ADDRL, reg);
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-173-
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-174-    reg = FMC_CMD_CMD2(NAND_CMD_READSTART) | FMC_CMD_CMD1(NAND_CMD_READ0);
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-175-    hifmc_writel(host, FMC_CMD, reg);
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-176-    FMC_PR(RD_DBG, "\t|-Set CMD[%#x]%#x\n", FMC_CMD, reg);
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-177-
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-178-    hifmc100_dma_transfer(host, RW_OP_READ);
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-179-
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-180-    if (hifmc_readl(host, FMC_INT) & FMC_INT_ERR_INVALID) {
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-181-        host->page_status |= HIFMC100_PS_UC_ECC;
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-182-    }
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-183-
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c:184:    host->cache_addr_value[0] = host->addr_value[0];
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-185-    host->cache_addr_value[1] = host->addr_value[1];
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-186-
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-187-    FMC_PR(RD_DBG, "\t*-End send page read cmd\n");
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-188-}
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-189-
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-190-/*****************************************************************************/
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-191-static void hifmc100_send_cmd_erase(struct hifmc_host *host)
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-192-{
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-193-    unsigned int reg;
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-194-
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-195-    FMC_PR(ER_DBG, "\t *-Start send cmd erase\n");
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-196-
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-197-    /* Don't case the read retry config */
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-198-    host->enable_ecc_randomizer(host, DISABLE, DISABLE);
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-199-
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-200-    reg = host->addr_value[0];
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-201-    hifmc_writel(host, FMC_ADDRL, reg);
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-202-    FMC_PR(ER_DBG, "\t |-Set ADDRL[%#x]%#x\n", FMC_ADDRL, reg);
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-203-
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-204-    reg = FMC_CMD_CMD2(NAND_CMD_ERASE2) | FMC_CMD_CMD1(NAND_CMD_ERASE1);
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-205-    hifmc_writel(host, FMC_CMD, reg);
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-206-    FMC_PR(ER_DBG, "\t |-Set CMD[%#x]%#x\n", FMC_CMD, reg);
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-207-
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-208-    reg = OP_CFG_FM_CS(host->cmd_op.cs)
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-209-          | OP_CFG_ADDR_NUM(host->addr_cycle);
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-210-    hifmc_writel(host, FMC_OP_CFG, reg);
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-211-    FMC_PR(ER_DBG, "\t |-Set OP_CFG[%#x]%#x\n", FMC_OP_CFG, reg);
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-212-
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-213-    /* need to config WAIT_READY_EN */
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-214-    reg = FMC_OP_WAIT_READY_EN
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-215-          | FMC_OP_CMD1_EN
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-216-          | FMC_OP_CMD2_EN
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-217-          | FMC_OP_ADDR_EN
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-218-          | FMC_OP_REG_OP_START;
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-219-    hifmc_writel(host, FMC_OP, reg);
+--
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-545-
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-546-/*****************************************************************************/
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-547-static void hifmc100_cmd_ctrl(struct mtd_info *mtd, int dat, unsigned ctrl)
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-548-{
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-549-    unsigned char cmd;
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-550-    int is_cache_invalid = 1;
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-551-    struct nand_chip *chip = mtd_to_nand(mtd);
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-552-    struct hifmc_host *host = chip->priv;
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-553-
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-554-    if (ctrl & NAND_ALE) {
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-555-        unsigned int addr_value = 0;
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-556-        unsigned int addr_offset = 0;
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-557-
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-558-        if (ctrl & NAND_CTRL_CHANGE) {
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-559-            host->addr_cycle = 0x0;
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c:560:            host->addr_value[0] = 0x0;
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-561-            host->addr_value[1] = 0x0;
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-562-        }
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-563-        addr_offset = host->addr_cycle << 3;
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-564-
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-565-        if (host->addr_cycle >= HIFMC100_ADDR_CYCLE_MASK) {
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-566-            addr_offset = (host->addr_cycle -
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-567-                           HIFMC100_ADDR_CYCLE_MASK) << 3;
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-568-            addr_value = 1;
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-569-        }
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-570-
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-571-        host->addr_value[addr_value] |=
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-572-            ((dat & 0xff) << addr_offset);
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-573-
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-574-        host->addr_cycle++;
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-575-    }
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-576-
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-577-    if ((ctrl & NAND_CLE) && (ctrl & NAND_CTRL_CHANGE)) {
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-578-        cmd = dat & 0xff;
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-579-        host->cmd_op.cmd = cmd;
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-580-        switch (cmd) {
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-581-            case NAND_CMD_PAGEPROG:
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-582-                host->offset = 0;
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-583-                host->send_cmd_pageprog(host);
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-584-                break;
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-585-
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-586-            case NAND_CMD_READSTART:
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-587-                is_cache_invalid = 0;
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c:588:                if (host->addr_value[0] == host->pagesize) {
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-589-                    host->cmd_op.l_cmd = NAND_CMD_READOOB;
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-590-                }
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-591-                host->send_cmd_readstart(host);
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-592-                break;
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-593-
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-594-            case NAND_CMD_ERASE2:
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-595-                host->cmd_op.l_cmd = cmd;
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-596-                host->send_cmd_erase(host);
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-597-                break;
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-598-
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-599-            case NAND_CMD_READID:
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-600-                memset((u_char *)(chip->IO_ADDR_R), 0, MAX_NAND_ID_LEN);
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-601-                host->cmd_op.l_cmd = cmd;
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-602-                host->cmd_op.data_no = MAX_NAND_ID_LEN;
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-603-                host->send_cmd_readid(host);
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-604-                break;
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-605-
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-606-            case NAND_CMD_STATUS:
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-607-                host->send_cmd_status(host);
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-608-                break;
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-609-
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-610-            case NAND_CMD_READ0:
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-611-                host->cmd_op.l_cmd = cmd;
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-612-                break;
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-613-
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-614-            case NAND_CMD_RESET:
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-615-                host->send_cmd_reset(host);
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-616-                break;
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-617-
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-618-            case NAND_CMD_SEQIN:
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-619-            case NAND_CMD_ERASE1:
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-620-            default:
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-621-                break;
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-622-        }
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-623-    }
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-624-
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-625-    /* pass pagesize and ecctype to kernel when startup. */
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-626-    host->enable_ecc_randomizer(host, ENABLE, ENABLE);
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-627-
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-628-    if ((dat == NAND_CMD_NONE) && host->addr_cycle) {
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-629-        if (host->cmd_op.cmd == NAND_CMD_SEQIN
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-630-                || host->cmd_op.cmd == NAND_CMD_READ0
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-631-                || host->cmd_op.cmd == NAND_CMD_READID) {
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-632-            host->offset = 0x0;
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-633-            host->column = (host->addr_value[0] & 0xffff);
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-634-        }
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-635-    }
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-636-
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-637-    if (is_cache_invalid) {
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c:638:        host->cache_addr_value[0] = ~0;
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-639-        host->cache_addr_value[1] = ~0;
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-640-    }
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-641-}
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-642-
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-643-/*****************************************************************************/
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-644-static int hifmc100_dev_ready(struct mtd_info *mtd)
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-645-{
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-646-    return 0x1;
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-647-}
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-648-
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-649-/*****************************************************************************/
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-650-/*
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-651- * 'host->epm' only use the first oobfree[0] field, it looks very simple, But...
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-652- */
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-653-static int hifmc_ooblayout_ecc_default(struct mtd_info *mtd, int section,
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-654-                                       struct mtd_oob_region *oobregion)
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-655-{
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-656-    if (section) {
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-657-        return -ERANGE;
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-658-    }
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-659-
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-660-    oobregion->length = 32;
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-661-    oobregion->offset = 32;
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-662-
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-663-    return 0;
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-664-}
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-665-
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-666-static int hifmc_ooblayout_free_default(struct mtd_info *mtd, int section,
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-667-                                        struct mtd_oob_region *oobregion)
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-668-{
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-669-    if (section) {
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-670-        return -ERANGE;
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-671-    }
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-672-
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-673-    oobregion->length = 30;
+--
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-1075-    if (reg & FMC_GLOBAL_CFG_RANDOMIZER_EN) {
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-1076-        host->flags &= ~NAND_RANDOMIZER;
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-1077-        FMC_PR(BT_DBG, "\t |-Default disable randomizer\n");
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-1078-        reg &= ~FMC_GLOBAL_CFG_RANDOMIZER_EN;
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-1079-        hifmc_writel(host, FMC_GLOBAL_CFG, reg);
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-1080-        FMC_PR(BT_DBG, "\t |-Set global CFG[%#x]%#x\n", FMC_GLOBAL_CFG, reg);
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-1081-    }
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-1082-
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-1083-#ifdef CONFIG_HIFMC100_NAND_EDO_MODE
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-1084-    /* enable EDO node */
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-1085-    reg = hifmc_readl(host, FMC_GLOBAL_CFG);
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-1086-    hifmc_writel(host, FMC_GLOBAL_CFG, SET_NAND_EDO_MODE_EN(reg));
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-1087-#endif
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-1088-
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-1089-    host->addr_cycle = 0;
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c:1090:    host->addr_value[0] = 0;
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-1091-    host->addr_value[1] = 0;
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c:1092:    host->cache_addr_value[0] = ~0;
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-1093-    host->cache_addr_value[1] = ~0;
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-1094-
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-1095-    host->send_cmd_pageprog = hifmc100_send_cmd_write;
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-1096-    host->send_cmd_status = hifmc100_send_cmd_status;
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-1097-    host->send_cmd_readstart = hifmc100_send_cmd_read;
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-1098-    host->send_cmd_erase = hifmc100_send_cmd_erase;
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-1099-    host->send_cmd_readid = hifmc100_send_cmd_readid;
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-1100-    host->send_cmd_reset = hifmc100_send_cmd_reset;
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-1101-
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-1102-    /*
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-1103-     * check if start from nand.
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-1104-     * This register REG_SYSSTAT is set in start.S
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-1105-     * When start in NAND (Auto), the ECC/PAGESIZE driver don't detect.
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-1106-     */
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-1107-    host->flags |= NANDC_HW_AUTO;
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-1108-
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-1109-    if (GET_SYS_BOOT_MODE(reg) == BOOT_FROM_NAND) {
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-1110-        host->flags |= NANDC_CONFIG_DONE;
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-1111-        FMC_PR(BT_DBG, "\t |-Auto config pagesize and ecctype\n");
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-1112-    }
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-1113-
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-1114-    host->enable_ecc_randomizer = hifmc100_ecc_randomizer;
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-1115-
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-1116-    FMC_PR(BT_DBG, "\t *-End nand host init\n");
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-1117-
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-1118-    return 0;
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-1119-}
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-1120-
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-1121-/*****************************************************************************/
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-1122-int hifmc100_nand_init(struct nand_chip *chip)
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-1123-{
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-1124-    struct hifmc_host *host = chip->priv;
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-1125-
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-1126-    /* enable and set system clock */
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-1127-    clk_prepare_enable(host->clk);
+--
+drivers/mtd/nand/hifmc100/hifmc100.c-206-    unsigned short wrap = 0;
+drivers/mtd/nand/hifmc100/hifmc100.c-207-    unsigned int reg, block_num, block_num_h, page_num, addr_of = 0;
+drivers/mtd/nand/hifmc100/hifmc100.c-208-    struct hifmc_spi *spi = host->spi;
+drivers/mtd/nand/hifmc100/hifmc100.c-209-    struct nand_chip *chip = host->chip;
+drivers/mtd/nand/hifmc100/hifmc100.c-210-#ifdef HIFMC100_SPI_NAND_SUPPORT_REG_READ
+drivers/mtd/nand/hifmc100/hifmc100.c-211-    char *op = "Reg";
+drivers/mtd/nand/hifmc100/hifmc100.c-212-#else
+drivers/mtd/nand/hifmc100/hifmc100.c-213-    char *op = "Dma";
+drivers/mtd/nand/hifmc100/hifmc100.c-214-#endif
+drivers/mtd/nand/hifmc100/hifmc100.c-215-
+drivers/mtd/nand/hifmc100/hifmc100.c-216-    if (RD_DBG) {
+drivers/mtd/nand/hifmc100/hifmc100.c-217-        pr_info("\n");
+drivers/mtd/nand/hifmc100/hifmc100.c-218-    }
+drivers/mtd/nand/hifmc100/hifmc100.c-219-    FMC_PR(RD_DBG, "\t*-Start %s page read\n", op);
+drivers/mtd/nand/hifmc100/hifmc100.c-220-
+drivers/mtd/nand/hifmc100/hifmc100.c:221:    if ((host->addr_value[0] == host->cache_addr_value[0])
+drivers/mtd/nand/hifmc100/hifmc100.c-222-            && (host->addr_value[1] == host->cache_addr_value[1])) {
+drivers/mtd/nand/hifmc100/hifmc100.c-223-        FMC_PR(RD_DBG, "\t*-%s read cache hit, addr[%#x %#x]\n",
+drivers/mtd/nand/hifmc100/hifmc100.c-224-               op, host->addr_value[1], host->addr_value[0]);
+drivers/mtd/nand/hifmc100/hifmc100.c-225-        return;
+drivers/mtd/nand/hifmc100/hifmc100.c-226-    }
+drivers/mtd/nand/hifmc100/hifmc100.c-227-
+drivers/mtd/nand/hifmc100/hifmc100.c-228-    mutex_lock(host->lock);
+drivers/mtd/nand/hifmc100/hifmc100.c-229-    hifmc100_operation_config(host, OP_STYPE_READ);
+drivers/mtd/nand/hifmc100/hifmc100.c-230-
+drivers/mtd/nand/hifmc100/hifmc100.c-231-    FMC_PR(RD_DBG, "\t|-Wait ready before %s page read\n", op);
+drivers/mtd/nand/hifmc100/hifmc100.c-232-    reg = spi->driver->wait_ready(spi);
+drivers/mtd/nand/hifmc100/hifmc100.c-233-    if (reg) {
+drivers/mtd/nand/hifmc100/hifmc100.c-234-        DB_MSG("Error: %s read wait ready fail! reg: %#x\n", op, reg);
+drivers/mtd/nand/hifmc100/hifmc100.c-235-        goto end;
+drivers/mtd/nand/hifmc100/hifmc100.c-236-    }
+drivers/mtd/nand/hifmc100/hifmc100.c-237-
+drivers/mtd/nand/hifmc100/hifmc100.c-238-    reg = FMC_INT_CLR_ALL;
+drivers/mtd/nand/hifmc100/hifmc100.c-239-    hifmc_writel(host, FMC_INT_CLR, reg);
+drivers/mtd/nand/hifmc100/hifmc100.c-240-    FMC_PR(RD_DBG, "\t|-Set INT_CLR[%#x]%#x\n", FMC_INT_CLR, reg);
+drivers/mtd/nand/hifmc100/hifmc100.c-241-
+drivers/mtd/nand/hifmc100/hifmc100.c-242-    if (host->cmd_op.l_cmd == NAND_CMD_READOOB) {
+drivers/mtd/nand/hifmc100/hifmc100.c-243-        only_oob = 1;
+drivers/mtd/nand/hifmc100/hifmc100.c-244-        host->cmd_op.op_cfg = OP_CTRL_RD_OP_SEL(RD_OP_READ_OOB);
+drivers/mtd/nand/hifmc100/hifmc100.c-245-    } else {
+drivers/mtd/nand/hifmc100/hifmc100.c-246-        host->cmd_op.op_cfg = OP_CTRL_RD_OP_SEL(RD_OP_READ_ALL_PAGE);
+drivers/mtd/nand/hifmc100/hifmc100.c-247-    }
+drivers/mtd/nand/hifmc100/hifmc100.c-248-
+drivers/mtd/nand/hifmc100/hifmc100.c-249-    reg = OP_CFG_FM_CS(host->cmd_op.cs)
+drivers/mtd/nand/hifmc100/hifmc100.c-250-          | OP_CFG_MEM_IF_TYPE(spi->read->iftype)
+drivers/mtd/nand/hifmc100/hifmc100.c-251-          | OP_CFG_DUMMY_NUM(spi->read->dummy)
+drivers/mtd/nand/hifmc100/hifmc100.c-252-          | OP_CFG_OEN_EN;
+drivers/mtd/nand/hifmc100/hifmc100.c-253-    hifmc_writel(host, FMC_OP_CFG, reg);
+drivers/mtd/nand/hifmc100/hifmc100.c-254-    FMC_PR(RD_DBG, "\t|-Set OP_CFG[%#x]%#x\n", FMC_OP_CFG, reg);
+drivers/mtd/nand/hifmc100/hifmc100.c-255-
+drivers/mtd/nand/hifmc100/hifmc100.c-256-    pages_per_block_shift = chip->phys_erase_shift - chip->page_shift;
+--
+drivers/mtd/nand/hifmc100/hifmc100.c-309-#endif
+drivers/mtd/nand/hifmc100/hifmc100.c-310-#endif
+drivers/mtd/nand/hifmc100/hifmc100.c-311-
+drivers/mtd/nand/hifmc100/hifmc100.c-312-    reg = OP_CTRL_RD_OPCODE(spi->read->cmd) | host->cmd_op.op_cfg
+drivers/mtd/nand/hifmc100/hifmc100.c-313-#ifdef HIFMC100_SPI_NAND_SUPPORT_REG_READ
+drivers/mtd/nand/hifmc100/hifmc100.c-314-          | OP_CTRL_DMA_OP(OP_TYPE_REG)
+drivers/mtd/nand/hifmc100/hifmc100.c-315-#else
+drivers/mtd/nand/hifmc100/hifmc100.c-316-          | OP_CTRL_DMA_OP(OP_TYPE_DMA)
+drivers/mtd/nand/hifmc100/hifmc100.c-317-#endif
+drivers/mtd/nand/hifmc100/hifmc100.c-318-          | OP_CTRL_RW_OP(RW_OP_READ) | OP_CTRL_DMA_OP_READY;
+drivers/mtd/nand/hifmc100/hifmc100.c-319-    hifmc_writel(host, FMC_OP_CTRL, reg);
+drivers/mtd/nand/hifmc100/hifmc100.c-320-    FMC_PR(RD_DBG, "\t|-Set OP_CTRL[%#x]%#x\n", FMC_OP_CTRL, reg);
+drivers/mtd/nand/hifmc100/hifmc100.c-321-
+drivers/mtd/nand/hifmc100/hifmc100.c-322-    FMC_DMA_WAIT_INT_FINISH(host);
+drivers/mtd/nand/hifmc100/hifmc100.c-323-
+drivers/mtd/nand/hifmc100/hifmc100.c:324:    host->cache_addr_value[0] = host->addr_value[0];
+drivers/mtd/nand/hifmc100/hifmc100.c-325-    host->cache_addr_value[1] = host->addr_value[1];
+drivers/mtd/nand/hifmc100/hifmc100.c-326-
+drivers/mtd/nand/hifmc100/hifmc100.c-327-end:
+drivers/mtd/nand/hifmc100/hifmc100.c-328-    mutex_unlock(host->lock);
+drivers/mtd/nand/hifmc100/hifmc100.c-329-    FMC_PR(RD_DBG, "\t*-End %s page read\n", op);
+drivers/mtd/nand/hifmc100/hifmc100.c-330-}
+drivers/mtd/nand/hifmc100/hifmc100.c-331-
+drivers/mtd/nand/hifmc100/hifmc100.c-332-/*****************************************************************************/
+drivers/mtd/nand/hifmc100/hifmc100.c-333-static void hifmc100_send_cmd_erase(struct hifmc_host *host)
+drivers/mtd/nand/hifmc100/hifmc100.c-334-{
+drivers/mtd/nand/hifmc100/hifmc100.c-335-    unsigned int reg;
+drivers/mtd/nand/hifmc100/hifmc100.c-336-    struct hifmc_spi *spi = host->spi;
+drivers/mtd/nand/hifmc100/hifmc100.c-337-
+drivers/mtd/nand/hifmc100/hifmc100.c-338-    if (ER_DBG) {
+drivers/mtd/nand/hifmc100/hifmc100.c-339-        pr_info("\n");
+drivers/mtd/nand/hifmc100/hifmc100.c-340-    }
+drivers/mtd/nand/hifmc100/hifmc100.c-341-    FMC_PR(ER_DBG, "\t*-Start send cmd erase!\n");
+drivers/mtd/nand/hifmc100/hifmc100.c-342-
+drivers/mtd/nand/hifmc100/hifmc100.c-343-    mutex_lock(host->lock);
+drivers/mtd/nand/hifmc100/hifmc100.c-344-    hifmc100_operation_config(host, OP_STYPE_ERASE);
+drivers/mtd/nand/hifmc100/hifmc100.c-345-
+drivers/mtd/nand/hifmc100/hifmc100.c-346-    reg = spi->driver->wait_ready(spi);
+drivers/mtd/nand/hifmc100/hifmc100.c-347-    FMC_PR(ER_DBG, "\t|-Erase wait ready, reg: %#x\n", reg);
+drivers/mtd/nand/hifmc100/hifmc100.c-348-    if (reg) {
+drivers/mtd/nand/hifmc100/hifmc100.c-349-        DB_MSG("Error: Erase wait ready fail! status: %#x\n", reg);
+drivers/mtd/nand/hifmc100/hifmc100.c-350-        goto end;
+drivers/mtd/nand/hifmc100/hifmc100.c-351-    }
+drivers/mtd/nand/hifmc100/hifmc100.c-352-
+drivers/mtd/nand/hifmc100/hifmc100.c-353-    reg = spi->driver->write_enable(spi);
+drivers/mtd/nand/hifmc100/hifmc100.c-354-    if (reg) {
+drivers/mtd/nand/hifmc100/hifmc100.c-355-        DB_MSG("Error: Erase write enable failed! reg: %#x\n", reg);
+drivers/mtd/nand/hifmc100/hifmc100.c-356-        goto end;
+drivers/mtd/nand/hifmc100/hifmc100.c-357-    }
+drivers/mtd/nand/hifmc100/hifmc100.c-358-
+drivers/mtd/nand/hifmc100/hifmc100.c-359-    reg = FMC_INT_CLR_ALL;
+--
+drivers/mtd/nand/hifmc100/hifmc100.c-503-        reg |= FMC_CFG_OP_MODE(FMC_CFG_OP_MODE_NORMAL);
+drivers/mtd/nand/hifmc100/hifmc100.c-504-        hifmc_writel(host, FMC_CFG, reg);
+drivers/mtd/nand/hifmc100/hifmc100.c-505-        FMC_PR(BT_DBG, "\t|||-Set CFG[%#x]%#x\n", FMC_CFG, reg);
+drivers/mtd/nand/hifmc100/hifmc100.c-506-    }
+drivers/mtd/nand/hifmc100/hifmc100.c-507-
+drivers/mtd/nand/hifmc100/hifmc100.c-508-    host->fmc_cfg = reg;
+drivers/mtd/nand/hifmc100/hifmc100.c-509-    host->fmc_cfg_ecc0 = (reg & ~ECC_TYPE_MASK) | ECC_TYPE_0BIT;
+drivers/mtd/nand/hifmc100/hifmc100.c-510-
+drivers/mtd/nand/hifmc100/hifmc100.c-511-    reg = hifmc_readl(host, FMC_GLOBAL_CFG);
+drivers/mtd/nand/hifmc100/hifmc100.c-512-    if (reg & FMC_GLOBAL_CFG_WP_ENABLE) {
+drivers/mtd/nand/hifmc100/hifmc100.c-513-        reg &= ~FMC_GLOBAL_CFG_WP_ENABLE;
+drivers/mtd/nand/hifmc100/hifmc100.c-514-        hifmc_writel(host, FMC_GLOBAL_CFG, reg);
+drivers/mtd/nand/hifmc100/hifmc100.c-515-    }
+drivers/mtd/nand/hifmc100/hifmc100.c-516-
+drivers/mtd/nand/hifmc100/hifmc100.c-517-    host->addr_cycle = 0;
+drivers/mtd/nand/hifmc100/hifmc100.c:518:    host->addr_value[0] = 0;
+drivers/mtd/nand/hifmc100/hifmc100.c-519-    host->addr_value[1] = 0;
+drivers/mtd/nand/hifmc100/hifmc100.c:520:    host->cache_addr_value[0] = ~0;
+drivers/mtd/nand/hifmc100/hifmc100.c-521-    host->cache_addr_value[1] = ~0;
+drivers/mtd/nand/hifmc100/hifmc100.c-522-
+drivers/mtd/nand/hifmc100/hifmc100.c-523-    host->send_cmd_write = hifmc100_send_cmd_write;
+drivers/mtd/nand/hifmc100/hifmc100.c-524-    host->send_cmd_status = hifmc100_send_cmd_status;
+drivers/mtd/nand/hifmc100/hifmc100.c-525-    host->send_cmd_read = hifmc100_send_cmd_read;
+drivers/mtd/nand/hifmc100/hifmc100.c-526-    host->send_cmd_erase = hifmc100_send_cmd_erase;
+drivers/mtd/nand/hifmc100/hifmc100.c-527-    host->send_cmd_readid = hifmc100_send_cmd_readid;
+drivers/mtd/nand/hifmc100/hifmc100.c-528-    host->send_cmd_reset = hifmc100_send_cmd_reset;
+drivers/mtd/nand/hifmc100/hifmc100.c-529-#ifdef CONFIG_PM
+drivers/mtd/nand/hifmc100/hifmc100.c-530-    host->suspend = hifmc100_suspend;
+drivers/mtd/nand/hifmc100/hifmc100.c-531-    host->resume  = hifmc100_resume;
+drivers/mtd/nand/hifmc100/hifmc100.c-532-#endif
+drivers/mtd/nand/hifmc100/hifmc100.c-533-
+drivers/mtd/nand/hifmc100/hifmc100.c-534-    reg = TIMING_CFG_TCSH(CS_HOLD_TIME)
+drivers/mtd/nand/hifmc100/hifmc100.c-535-          | TIMING_CFG_TCSS(CS_SETUP_TIME)
+drivers/mtd/nand/hifmc100/hifmc100.c-536-          | TIMING_CFG_TSHSL(CS_DESELECT_TIME);
+drivers/mtd/nand/hifmc100/hifmc100.c-537-    hifmc_writel(host, FMC_SPI_TIMING_CFG, reg);
+drivers/mtd/nand/hifmc100/hifmc100.c-538-
+drivers/mtd/nand/hifmc100/hifmc100.c-539-    reg = ALL_BURST_ENABLE;
+drivers/mtd/nand/hifmc100/hifmc100.c-540-    hifmc_writel(host, FMC_DMA_AHB_CTRL, reg);
+drivers/mtd/nand/hifmc100/hifmc100.c-541-
+drivers/mtd/nand/hifmc100/hifmc100.c-542-    FMC_PR(BT_DBG, "\t||*-End SPI Nand host init\n");
+drivers/mtd/nand/hifmc100/hifmc100.c-543-}
+drivers/mtd/nand/hifmc100/hifmc100.c-544-
+drivers/mtd/nand/hifmc100/hifmc100.c-545-/*****************************************************************************/
+drivers/mtd/nand/hifmc100/hifmc100.c-546-static unsigned char hifmc100_read_byte(struct mtd_info *mtd)
+drivers/mtd/nand/hifmc100/hifmc100.c-547-{
+drivers/mtd/nand/hifmc100/hifmc100.c-548-    struct nand_chip *chip = mtd_to_nand(mtd);
+drivers/mtd/nand/hifmc100/hifmc100.c-549-    struct hifmc_host *host = chip->priv;
+drivers/mtd/nand/hifmc100/hifmc100.c-550-    unsigned char value, ret_val = 0;
+drivers/mtd/nand/hifmc100/hifmc100.c-551-
+drivers/mtd/nand/hifmc100/hifmc100.c-552-    if (host->cmd_op.l_cmd == NAND_CMD_READID) {
+drivers/mtd/nand/hifmc100/hifmc100.c-553-        value = hifmc_readb(host->iobase + host->offset);
+drivers/mtd/nand/hifmc100/hifmc100.c-554-        host->offset++;
+drivers/mtd/nand/hifmc100/hifmc100.c-555-        if (host->cmd_op.data_no == host->offset) {
+--
+drivers/mtd/nand/hifmc100/hifmc100.c-704-/*****************************************************************************/
+drivers/mtd/nand/hifmc100/hifmc100.c-705-static void hifmc100_cmd_ctrl(struct mtd_info *mtd, int dat, unsigned ctrl)
+drivers/mtd/nand/hifmc100/hifmc100.c-706-{
+drivers/mtd/nand/hifmc100/hifmc100.c-707-    unsigned char cmd;
+drivers/mtd/nand/hifmc100/hifmc100.c-708-    int is_cache_invalid = 1;
+drivers/mtd/nand/hifmc100/hifmc100.c-709-    struct nand_chip *chip = mtd_to_nand(mtd);
+drivers/mtd/nand/hifmc100/hifmc100.c-710-    struct hifmc_host *host = chip->priv;
+drivers/mtd/nand/hifmc100/hifmc100.c-711-    unsigned int udat = (unsigned int)dat;
+drivers/mtd/nand/hifmc100/hifmc100.c-712-
+drivers/mtd/nand/hifmc100/hifmc100.c-713-    if (ctrl & NAND_ALE) {
+drivers/mtd/nand/hifmc100/hifmc100.c-714-        unsigned int addr_value = 0;
+drivers/mtd/nand/hifmc100/hifmc100.c-715-        unsigned int addr_offset = 0;
+drivers/mtd/nand/hifmc100/hifmc100.c-716-
+drivers/mtd/nand/hifmc100/hifmc100.c-717-        if (ctrl & NAND_CTRL_CHANGE) {
+drivers/mtd/nand/hifmc100/hifmc100.c-718-            host->addr_cycle = 0x0;
+drivers/mtd/nand/hifmc100/hifmc100.c:719:            host->addr_value[0] = 0x0;
+drivers/mtd/nand/hifmc100/hifmc100.c-720-            host->addr_value[1] = 0x0;
+drivers/mtd/nand/hifmc100/hifmc100.c-721-        }
+drivers/mtd/nand/hifmc100/hifmc100.c-722-        addr_offset = host->addr_cycle << 3;
+drivers/mtd/nand/hifmc100/hifmc100.c-723-
+drivers/mtd/nand/hifmc100/hifmc100.c-724-        if (host->addr_cycle >= HIFMC100_ADDR_CYCLE_MASK) {
+drivers/mtd/nand/hifmc100/hifmc100.c-725-            addr_offset = (host->addr_cycle -
+drivers/mtd/nand/hifmc100/hifmc100.c-726-                           HIFMC100_ADDR_CYCLE_MASK) << 3;
+drivers/mtd/nand/hifmc100/hifmc100.c-727-            addr_value = 1;
+drivers/mtd/nand/hifmc100/hifmc100.c-728-        }
+drivers/mtd/nand/hifmc100/hifmc100.c-729-        host->addr_value[addr_value] |=
+drivers/mtd/nand/hifmc100/hifmc100.c-730-            ((udat & 0xff) << addr_offset);
+drivers/mtd/nand/hifmc100/hifmc100.c-731-
+drivers/mtd/nand/hifmc100/hifmc100.c-732-        host->addr_cycle++;
+drivers/mtd/nand/hifmc100/hifmc100.c-733-    }
+drivers/mtd/nand/hifmc100/hifmc100.c-734-
+drivers/mtd/nand/hifmc100/hifmc100.c-735-    if ((ctrl & NAND_CLE) && (ctrl & NAND_CTRL_CHANGE)) {
+drivers/mtd/nand/hifmc100/hifmc100.c-736-        cmd = udat & 0xff;
+drivers/mtd/nand/hifmc100/hifmc100.c-737-        host->cmd_op.cmd = cmd;
+drivers/mtd/nand/hifmc100/hifmc100.c-738-        switch (cmd) {
+drivers/mtd/nand/hifmc100/hifmc100.c-739-            case NAND_CMD_PAGEPROG:
+drivers/mtd/nand/hifmc100/hifmc100.c-740-                host->offset = 0;
+drivers/mtd/nand/hifmc100/hifmc100.c-741-                host->send_cmd_write(host);
+drivers/mtd/nand/hifmc100/hifmc100.c-742-                break;
+drivers/mtd/nand/hifmc100/hifmc100.c-743-
+drivers/mtd/nand/hifmc100/hifmc100.c-744-            case NAND_CMD_READSTART:
+drivers/mtd/nand/hifmc100/hifmc100.c-745-                is_cache_invalid = 0;
+drivers/mtd/nand/hifmc100/hifmc100.c:746:                if (host->addr_value[0] == host->pagesize) {
+drivers/mtd/nand/hifmc100/hifmc100.c-747-                    host->cmd_op.l_cmd = NAND_CMD_READOOB;
+drivers/mtd/nand/hifmc100/hifmc100.c-748-                }
+drivers/mtd/nand/hifmc100/hifmc100.c-749-                host->send_cmd_read(host);
+drivers/mtd/nand/hifmc100/hifmc100.c-750-                break;
+drivers/mtd/nand/hifmc100/hifmc100.c-751-
+drivers/mtd/nand/hifmc100/hifmc100.c-752-            case NAND_CMD_ERASE2:
+drivers/mtd/nand/hifmc100/hifmc100.c-753-                host->send_cmd_erase(host);
+drivers/mtd/nand/hifmc100/hifmc100.c-754-                break;
+drivers/mtd/nand/hifmc100/hifmc100.c-755-
+drivers/mtd/nand/hifmc100/hifmc100.c-756-            case NAND_CMD_READID:
+drivers/mtd/nand/hifmc100/hifmc100.c-757-                memset((u_char *)(host->iobase), 0,
+drivers/mtd/nand/hifmc100/hifmc100.c-758-                       MAX_SPI_NAND_ID_LEN);
+drivers/mtd/nand/hifmc100/hifmc100.c-759-                host->cmd_op.l_cmd = cmd;
+drivers/mtd/nand/hifmc100/hifmc100.c-760-                host->cmd_op.data_no = MAX_SPI_NAND_ID_LEN;
+drivers/mtd/nand/hifmc100/hifmc100.c-761-                host->send_cmd_readid(host);
+drivers/mtd/nand/hifmc100/hifmc100.c-762-                break;
+drivers/mtd/nand/hifmc100/hifmc100.c-763-
+drivers/mtd/nand/hifmc100/hifmc100.c-764-            case NAND_CMD_STATUS:
+drivers/mtd/nand/hifmc100/hifmc100.c-765-                host->send_cmd_status(host);
+drivers/mtd/nand/hifmc100/hifmc100.c-766-                break;
+drivers/mtd/nand/hifmc100/hifmc100.c-767-
+drivers/mtd/nand/hifmc100/hifmc100.c-768-            case NAND_CMD_READ0:
+drivers/mtd/nand/hifmc100/hifmc100.c-769-                host->cmd_op.l_cmd = cmd;
+drivers/mtd/nand/hifmc100/hifmc100.c-770-                break;
+drivers/mtd/nand/hifmc100/hifmc100.c-771-
+drivers/mtd/nand/hifmc100/hifmc100.c-772-            case NAND_CMD_RESET:
+drivers/mtd/nand/hifmc100/hifmc100.c-773-                host->send_cmd_reset(host);
+drivers/mtd/nand/hifmc100/hifmc100.c-774-                break;
+drivers/mtd/nand/hifmc100/hifmc100.c-775-
+drivers/mtd/nand/hifmc100/hifmc100.c-776-            case NAND_CMD_SEQIN:
+drivers/mtd/nand/hifmc100/hifmc100.c-777-            case NAND_CMD_ERASE1:
+drivers/mtd/nand/hifmc100/hifmc100.c-778-            default:
+drivers/mtd/nand/hifmc100/hifmc100.c-779-                break;
+drivers/mtd/nand/hifmc100/hifmc100.c-780-        }
+drivers/mtd/nand/hifmc100/hifmc100.c-781-    }
+drivers/mtd/nand/hifmc100/hifmc100.c-782-
+drivers/mtd/nand/hifmc100/hifmc100.c-783-    if ((dat == NAND_CMD_NONE) && host->addr_cycle) {
+drivers/mtd/nand/hifmc100/hifmc100.c-784-        if (host->cmd_op.cmd == NAND_CMD_SEQIN
+drivers/mtd/nand/hifmc100/hifmc100.c-785-                || host->cmd_op.cmd == NAND_CMD_READ0
+drivers/mtd/nand/hifmc100/hifmc100.c-786-                || host->cmd_op.cmd == NAND_CMD_READID) {
+drivers/mtd/nand/hifmc100/hifmc100.c-787-            host->offset = 0x0;
+drivers/mtd/nand/hifmc100/hifmc100.c-788-            host->column = (host->addr_value[0] & 0xffff);
+drivers/mtd/nand/hifmc100/hifmc100.c-789-        }
+drivers/mtd/nand/hifmc100/hifmc100.c-790-    }
+drivers/mtd/nand/hifmc100/hifmc100.c-791-
+drivers/mtd/nand/hifmc100/hifmc100.c-792-    if (is_cache_invalid) {
+drivers/mtd/nand/hifmc100/hifmc100.c:793:        host->cache_addr_value[0] = ~0;
+drivers/mtd/nand/hifmc100/hifmc100.c-794-        host->cache_addr_value[1] = ~0;
+drivers/mtd/nand/hifmc100/hifmc100.c-795-    }
+drivers/mtd/nand/hifmc100/hifmc100.c-796-}
+drivers/mtd/nand/hifmc100/hifmc100.c-797-
+drivers/mtd/nand/hifmc100/hifmc100.c-798-/*****************************************************************************/
+drivers/mtd/nand/hifmc100/hifmc100.c-799-static int hifmc100_dev_ready(struct mtd_info *mtd)
+drivers/mtd/nand/hifmc100/hifmc100.c-800-{
+drivers/mtd/nand/hifmc100/hifmc100.c-801-    unsigned int reg;
+drivers/mtd/nand/hifmc100/hifmc100.c-802-    unsigned long deadline = jiffies + FMC_MAX_READY_WAIT_JIFFIES;
+drivers/mtd/nand/hifmc100/hifmc100.c-803-    struct nand_chip *chip = mtd_to_nand(mtd);
+drivers/mtd/nand/hifmc100/hifmc100.c-804-    struct hifmc_host *host = chip->priv;
+drivers/mtd/nand/hifmc100/hifmc100.c-805-
+drivers/mtd/nand/hifmc100/hifmc100.c-806-    do {
+drivers/mtd/nand/hifmc100/hifmc100.c-807-        reg = OP_CFG_FM_CS(host->cmd_op.cs) | OP_CFG_OEN_EN;
+drivers/mtd/nand/hifmc100/hifmc100.c-808-        hifmc_writel(host, FMC_OP_CFG, reg);
+drivers/mtd/nand/hifmc100/hifmc100.c-809-
+drivers/mtd/nand/hifmc100/hifmc100.c-810-        reg = FMC_OP_READ_STATUS_EN | FMC_OP_REG_OP_START;
+drivers/mtd/nand/hifmc100/hifmc100.c-811-        hifmc_writel(host, FMC_OP, reg);
+drivers/mtd/nand/hifmc100/hifmc100.c-812-
+drivers/mtd/nand/hifmc100/hifmc100.c-813-        FMC_CMD_WAIT_CPU_FINISH(host);
+drivers/mtd/nand/hifmc100/hifmc100.c-814-
+drivers/mtd/nand/hifmc100/hifmc100.c-815-        reg = hifmc_readl(host, FMC_STATUS);
+drivers/mtd/nand/hifmc100/hifmc100.c-816-
+drivers/mtd/nand/hifmc100/hifmc100.c-817-        if (!(reg & STATUS_OIP_MASK)) {
+drivers/mtd/nand/hifmc100/hifmc100.c-818-            return NAND_STATUS_READY;
+drivers/mtd/nand/hifmc100/hifmc100.c-819-        }
+drivers/mtd/nand/hifmc100/hifmc100.c-820-
+drivers/mtd/nand/hifmc100/hifmc100.c-821-        cond_resched();
+drivers/mtd/nand/hifmc100/hifmc100.c-822-
+drivers/mtd/nand/hifmc100/hifmc100.c-823-    } while (!time_after_eq(jiffies, deadline));
+drivers/mtd/nand/hifmc100/hifmc100.c-824-
+drivers/mtd/nand/hifmc100/hifmc100.c-825-    if (!(chip->options & NAND_SCAN_SILENT_NODEV)) {
+drivers/mtd/nand/hifmc100/hifmc100.c-826-        pr_warn("Wait SPI nand ready timeout, status: %#x\n", reg);
+drivers/mtd/nand/hifmc100/hifmc100.c-827-    }
+drivers/mtd/nand/hifmc100/hifmc100.c-828-
+
+--- NAND CFG / ADDR CYCLE ---
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-78-    FMC_PR(DMA_DB, "\t\t |-Set OP[%#x]%#x\n", FMC_OP, reg);
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-79-
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-80-    reg = FMC_DMA_AHB_CTRL_DMA_PP_EN
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-81-          | FMC_DMA_AHB_CTRL_BURST16_EN
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-82-          | FMC_DMA_AHB_CTRL_BURST8_EN
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-83-          | FMC_DMA_AHB_CTRL_BURST4_EN;
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-84-    hifmc_writel(host, FMC_DMA_AHB_CTRL, reg);
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-85-    FMC_PR(DMA_DB, "\t\t |-Set AHBCTRL[%#x]%#x\n", FMC_DMA_AHB_CTRL, reg);
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-86-
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-87-    reg = OP_CFG_FM_CS(host->cmd_op.cs)
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c:88:          | OP_CFG_ADDR_NUM(host->addr_cycle);
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-89-    hifmc_writel(host, FMC_OP_CFG, reg);
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-90-    FMC_PR(DMA_DB, "\t\t |-Set OP_CFG[%#x]%#x\n", FMC_OP_CFG, reg);
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-91-
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-92-    reg = OP_CTRL_DMA_OP_READY;
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-93-    if (todev) {
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-94-        reg |= OP_CTRL_RW_OP(todev);
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-95-    }
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-96-    hifmc_writel(host, FMC_OP_CTRL, reg);
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-97-    FMC_PR(DMA_DB, "\t\t |-Set OP_CTRL[%#x]%#x\n", FMC_OP_CTRL, reg);
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-98-
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-99-    FMC_DMA_WAIT_CPU_FINISH(host);
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-100-
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-101-    FMC_PR(DMA_DB, "\t\t *-End %s page dma transfer\n", op);
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-102-
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-103-    return;
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-104-}
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-105-
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-106-/*****************************************************************************/
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-107-static void hifmc100_send_cmd_write(struct hifmc_host *host)
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-108-{
+--
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-152-    }
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-153-
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-154-    host->page_status = 0;
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-155-
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-156-    host->enable_ecc_randomizer(host, ENABLE, ENABLE);
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-157-
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-158-    reg = FMC_INT_CLR_ALL;
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-159-    hifmc_writel(host, FMC_INT_CLR, reg);
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-160-    FMC_PR(RD_DBG, "\t|-Set INT_CLR[%#x]%#x\n", FMC_INT_CLR, reg);
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-161-
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c:162:    reg = host->nand_cfg;
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-163-    hifmc_writel(host, FMC_CFG, reg);
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-164-    FMC_PR(RD_DBG, "\t|-Set CFG[%#x]%#x\n", FMC_CFG, reg);
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-165-
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-166-    reg = host->addr_value[1];
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-167-    hifmc_writel(host, FMC_ADDRH, reg);
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-168-    FMC_PR(RD_DBG, "\t|-Set ADDRH[%#x]%#x\n", FMC_ADDRH, reg);
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-169-
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-170-    reg = host->addr_value[0] & 0xffff0000;
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-171-    hifmc_writel(host, FMC_ADDRL, reg);
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-172-    FMC_PR(RD_DBG, "\t|-Set ADDRL[%#x]%#x\n", FMC_ADDRL, reg);
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-173-
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-174-    reg = FMC_CMD_CMD2(NAND_CMD_READSTART) | FMC_CMD_CMD1(NAND_CMD_READ0);
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-175-    hifmc_writel(host, FMC_CMD, reg);
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-176-    FMC_PR(RD_DBG, "\t|-Set CMD[%#x]%#x\n", FMC_CMD, reg);
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-177-
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-178-    hifmc100_dma_transfer(host, RW_OP_READ);
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-179-
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-180-    if (hifmc_readl(host, FMC_INT) & FMC_INT_ERR_INVALID) {
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-181-        host->page_status |= HIFMC100_PS_UC_ECC;
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-182-    }
+--
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-199-
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-200-    reg = host->addr_value[0];
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-201-    hifmc_writel(host, FMC_ADDRL, reg);
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-202-    FMC_PR(ER_DBG, "\t |-Set ADDRL[%#x]%#x\n", FMC_ADDRL, reg);
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-203-
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-204-    reg = FMC_CMD_CMD2(NAND_CMD_ERASE2) | FMC_CMD_CMD1(NAND_CMD_ERASE1);
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-205-    hifmc_writel(host, FMC_CMD, reg);
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-206-    FMC_PR(ER_DBG, "\t |-Set CMD[%#x]%#x\n", FMC_CMD, reg);
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-207-
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-208-    reg = OP_CFG_FM_CS(host->cmd_op.cs)
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c:209:          | OP_CFG_ADDR_NUM(host->addr_cycle);
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-210-    hifmc_writel(host, FMC_OP_CFG, reg);
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-211-    FMC_PR(ER_DBG, "\t |-Set OP_CFG[%#x]%#x\n", FMC_OP_CFG, reg);
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-212-
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-213-    /* need to config WAIT_READY_EN */
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-214-    reg = FMC_OP_WAIT_READY_EN
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-215-          | FMC_OP_CMD1_EN
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-216-          | FMC_OP_CMD2_EN
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-217-          | FMC_OP_ADDR_EN
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-218-          | FMC_OP_REG_OP_START;
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-219-    hifmc_writel(host, FMC_OP, reg);
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-220-    FMC_PR(ER_DBG, "\t |-Set OP[%#x]%#x\n", FMC_OP, reg);
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-221-
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-222-    FMC_CMD_WAIT_CPU_FINISH(host);
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-223-
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-224-    FMC_PR(ER_DBG, "\t |*-End send cmd erase\n");
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-225-}
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-226-
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-227-/*****************************************************************************/
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-228-static void hifmc100_ecc_randomizer(struct hifmc_host *host, int ecc_en,
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-229-                                    int randomizer_en)
+--
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-245-            FMC_PR(EC_DBG, "\t ||-Get global CFG[%#x]%#x\n",
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-246-                   FMC_GLOBAL_CFG, old_reg);
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-247-            hifmc_writel(host, FMC_GLOBAL_CFG, reg);
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-248-            FMC_PR(EC_DBG, "\t ||-Set global CFG[%#x]%#x\n",
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-249-                   FMC_GLOBAL_CFG, reg);
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-250-            change++;
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-251-        }
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-252-    }
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-253-
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-254-    old_reg = hifmc_readl(host, FMC_CFG);
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c:255:    reg = (ecc_en ? host->nand_cfg : host->nand_cfg_ecc0);
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-256-
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-257-    if (old_reg != reg) {
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-258-        FMC_PR(EC_DBG, "\t |%s-Start %s ECC0 mode\n", change ? "|" : "*",
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-259-               ecc_op);
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-260-        FMC_PR(EC_DBG, "\t ||-Get CFG[%#x]%#x\n", FMC_CFG, old_reg);
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-261-        hifmc_writel(host, FMC_CFG, reg);
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-262-        FMC_PR(EC_DBG, "\t ||-Set CFG[%#x]%#x\n", FMC_CFG, reg);
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-263-        change++;
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-264-    }
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-265-
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-266-    if (EC_DBG && change) {
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-267-        FMC_PR(EC_DBG, "\t |*-End randomizer and ECC0 mode config\n");
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-268-    }
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-269-}
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-270-
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-271-/*****************************************************************************/
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-272-static void hifmc100_send_cmd_status(struct hifmc_host *host)
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-273-{
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-274-    unsigned int regval;
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-275-
+--
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-310-    hifmc_writel(host, FMC_OP_CFG, reg);
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-311-    FMC_PR(BT_DBG, "\t |-Set OP_CFG[%#x]%#x\n", FMC_OP_CFG, reg);
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-312-
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-313-    reg = FMC_OP_CMD1_EN
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-314-          | FMC_OP_ADDR_EN
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-315-          | FMC_OP_READ_DATA_EN
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-316-          | FMC_OP_REG_OP_START;
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-317-    hifmc_writel(host, FMC_OP, reg);
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-318-    FMC_PR(BT_DBG, "\t |-Set OP[%#x]%#x\n", FMC_OP, reg);
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-319-
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c:320:    host->addr_cycle = 0x0;
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-321-
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-322-    FMC_CMD_WAIT_CPU_FINISH(host);
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-323-
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-324-    FMC_PR(BT_DBG, "\t *-End read nand flash ID\n");
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-325-}
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-326-
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-327-/*****************************************************************************/
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-328-static void hifmc100_send_cmd_reset(struct hifmc_host *host)
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-329-{
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-330-    unsigned int reg;
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-331-
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-332-    FMC_PR(BT_DBG, "\t *-Start reset nand flash\n");
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-333-
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-334-    reg = FMC_CMD_CMD1(NAND_CMD_RESET);
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-335-    hifmc_writel(host, FMC_CMD, reg);
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-336-    FMC_PR(BT_DBG, "\t |-Set CMD[%#x]%#x\n", FMC_CMD, reg);
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-337-
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-338-    reg = OP_CFG_FM_CS(host->cmd_op.cs);
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-339-    hifmc_writel(host, FMC_OP_CFG, reg);
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-340-    FMC_PR(BT_DBG, "\t |-Set OP_CFG[%#x]%#x\n", FMC_OP_CFG, reg);
+--
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-549-    unsigned char cmd;
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-550-    int is_cache_invalid = 1;
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-551-    struct nand_chip *chip = mtd_to_nand(mtd);
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-552-    struct hifmc_host *host = chip->priv;
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-553-
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-554-    if (ctrl & NAND_ALE) {
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-555-        unsigned int addr_value = 0;
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-556-        unsigned int addr_offset = 0;
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-557-
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-558-        if (ctrl & NAND_CTRL_CHANGE) {
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c:559:            host->addr_cycle = 0x0;
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-560-            host->addr_value[0] = 0x0;
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-561-            host->addr_value[1] = 0x0;
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-562-        }
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c:563:        addr_offset = host->addr_cycle << 3;
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-564-
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c:565:        if (host->addr_cycle >= HIFMC100_ADDR_CYCLE_MASK) {
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c:566:            addr_offset = (host->addr_cycle -
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-567-                           HIFMC100_ADDR_CYCLE_MASK) << 3;
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-568-            addr_value = 1;
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-569-        }
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-570-
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-571-        host->addr_value[addr_value] |=
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-572-            ((dat & 0xff) << addr_offset);
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-573-
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c:574:        host->addr_cycle++;
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-575-    }
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-576-
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-577-    if ((ctrl & NAND_CLE) && (ctrl & NAND_CTRL_CHANGE)) {
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-578-        cmd = dat & 0xff;
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-579-        host->cmd_op.cmd = cmd;
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-580-        switch (cmd) {
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-581-            case NAND_CMD_PAGEPROG:
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-582-                host->offset = 0;
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-583-                host->send_cmd_pageprog(host);
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-584-                break;
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-585-
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-586-            case NAND_CMD_READSTART:
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-587-                is_cache_invalid = 0;
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-588-                if (host->addr_value[0] == host->pagesize) {
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-589-                    host->cmd_op.l_cmd = NAND_CMD_READOOB;
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-590-                }
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-591-                host->send_cmd_readstart(host);
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-592-                break;
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-593-
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-594-            case NAND_CMD_ERASE2:
+--
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-618-            case NAND_CMD_SEQIN:
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-619-            case NAND_CMD_ERASE1:
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-620-            default:
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-621-                break;
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-622-        }
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-623-    }
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-624-
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-625-    /* pass pagesize and ecctype to kernel when startup. */
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-626-    host->enable_ecc_randomizer(host, ENABLE, ENABLE);
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-627-
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c:628:    if ((dat == NAND_CMD_NONE) && host->addr_cycle) {
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-629-        if (host->cmd_op.cmd == NAND_CMD_SEQIN
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-630-                || host->cmd_op.cmd == NAND_CMD_READ0
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-631-                || host->cmd_op.cmd == NAND_CMD_READID) {
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-632-            host->offset = 0x0;
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-633-            host->column = (host->addr_value[0] & 0xffff);
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-634-        }
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-635-    }
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-636-
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-637-    if (is_cache_invalid) {
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-638-        host->cache_addr_value[0] = ~0;
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-639-        host->cache_addr_value[1] = ~0;
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-640-    }
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-641-}
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-642-
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-643-/*****************************************************************************/
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-644-static int hifmc100_dev_ready(struct mtd_info *mtd)
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-645-{
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-646-    return 0x1;
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-647-}
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-648-
+--
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-896-    if (IS_NAND_RANDOM(host) &&
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-897-            !hifmc100_nand_support_randomizer(host->pagesize, host->ecctype)) {
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-898-        DB_BUG(ERSTR_HARDWARE
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-899-               "This NAND flash does not support `randomizer`, "
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-900-               "Please don't configure hardware randomizer PIN.");
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-901-    }
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-902-    /* Save value of FMC_CFG and FMC_CFG_ECC0 to turn on/off ECC */
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-903-    reg_fmc_cfg = hifmc_readl(host, FMC_CFG);
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-904-    reg_fmc_cfg &= ~(PAGE_SIZE_MASK | ECC_TYPE_MASK | BLOCK_SIZE_MASK);
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c-905-    reg_fmc_cfg |= ecc_reg | page_reg | block_reg;
+drivers/mtd/nand/hifmc100_nand/hifmc100_nand.c:906:    host->nand_cfg = reg_fmc_cfg;
+userubuntu@NSZDR2414:~/openipc-linux$
